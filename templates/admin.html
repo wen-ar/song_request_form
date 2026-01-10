@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>管理頁面</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body class="container mt-5">
+
+  <h2 class="mb-4">系統管理設定</h2>
+  <form id="configForm">
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" id="acceptResponses">
+      <label class="form-check-label" for="acceptResponses">是否接受回應</label>
+    </div>
+
+    <div class="mb-3">
+      <label for="deadlineDate" class="form-label">截止日期</label>
+      <input type="date" class="form-control" id="deadlineDate">
+    </div>
+
+    <div class="mb-3">
+      <label for="deadlineTime" class="form-label">截止時間</label>
+      <input type="time" class="form-control" id="deadlineTime" step="1">
+    </div>
+
+    <button type="submit" class="btn btn-primary">更新設定</button>
+  </form>
+
+  <hr class="my-4">
+
+  <h2 class="mb-4">通知設定</h2>
+  <form id="notifyForm">
+    <div class="mb-3">
+      <label for="notificationContent" class="form-label">自訂通知內容</label>
+      <textarea class="form-control" id="notificationContent" rows="3"></textarea>
+    </div>
+    <div class="mb-3">
+      <label for="version" class="form-label">版本號 (格式 x.y.z)</label>
+      <input type="text" class="form-control" id="version" placeholder="例如：1.0.0">
+    </div>
+    <button type="submit" class="btn btn-primary">更新通知</button>
+  </form>
+
+  <hr class="my-4">
+
+  <h2 class="mb-3">收集到的結果</h2>
+
+  <!-- 搜尋與操作 -->
+  <div class="row g-2 mb-3">
+    <div class="col-6 col-md-auto">
+      <select id="genderFilter" class="form-select">
+        <option value="">全部</option>
+        <option value="男">男生</option>
+        <option value="女">女生</option>
+      </select>
+    </div>
+    <div class="col-6 col-md">
+      <input type="number" id="searchId" class="form-control" placeholder="搜尋歌曲 ID">
+    </div>
+    <div class="col-6 col-md-auto">
+      <button class="btn btn-info w-100" onclick="searchResult()">搜尋</button>
+    </div>
+    <div class="col-6 col-md-auto">
+      <button class="btn btn-warning w-100" onclick="deleteAll()">刪除全部結果</button>
+    </div>
+    <div class="col-6 col-md-auto">
+      <button class="btn btn-success w-100" onclick="exportExcel()">匯出 Excel</button>
+    </div>
+    <div class="col-6 col-md-auto">
+      <button class="btn btn-outline-danger w-100" onclick="resetIds()">重置 ID</button>
+    </div>
+  </div>
+
+  <ul id="resultsList" class="list-group mb-3"></ul>
+  <p id="noResultMsg" class="text-muted" style="display:none;">找不到符合的結果</p>
+
+  <!-- 詳細內容 Modal -->
+  <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="resultModalLabel">使用者詳細內容</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>ID:</strong> <span id="detailId"></span></p>
+          <p><strong>姓名:</strong> <span id="detailName"></span></p>
+          <p><strong>性別:</strong> <span id="detailGender"></span></p>
+          <p><strong>歌曲:</strong> <span id="detailSong"></span></p>
+          <p><strong>連結:</strong> <a id="detailLink" href="#" target="_blank"></a></p>
+          <p><strong>填寫時間:</strong> <span id="detailTime"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" onclick="deleteCurrent()">刪除此結果</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // 載入設定
+  function loadConfig() {
+    fetch("/config")
+      .then(res => res.json())
+      .then(config => {
+        document.getElementById("acceptResponses").checked = !!config.accept_responses;
+        if (config.deadline && config.deadline.includes(" ")) {
+          const [date, time] = config.deadline.split(" ");
+          document.getElementById("deadlineDate").value = date;
+          document.getElementById("deadlineTime").value = time;
+        }
+      });
+  }
+
+  // 更新設定
+  document.getElementById("configForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const date = document.getElementById("deadlineDate").value;
+    const time = document.getElementById("deadlineTime").value;
+    const deadline = date && time ? `${date} ${time}` : "";
+
+    const data = {
+      accept_responses: document.getElementById("acceptResponses").checked,
+      deadline: deadline
+    };
+
+    fetch("/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("設定已更新");
+      } else {
+        alert("更新失敗：" + data.error);
+      }
+    });
+  });
+
+  // 載入通知設定
+  function loadNotification() {
+    fetch("/config")
+      .then(res => res.json())
+      .then(config => {
+        document.getElementById("notificationContent").value = config.notification_content || "";
+        document.getElementById("version").value = config.version || "1.0.0";
+      });
+  }
+
+  // 更新通知設定
+  document.getElementById("notifyForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const data = {
+      notification_content: document.getElementById("notificationContent").value,
+      version: document.getElementById("version").value
+    };
+
+    fetch("/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("通知已更新");
+      } else {
+        alert("更新失敗：" + data.error);
+      }
+    });
+  });
+
+  // 刪除全部結果
+  function deleteAll() {
+    if (!confirm("⚠️ 確定要刪除所有結果嗎？此動作不可復原！")) return;
+    fetch("/delete_all", { method: "DELETE" })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert("所有結果已刪除");
+          document.getElementById("resultsList").innerHTML = "";
+          document.getElementById("noResultMsg").style.display = "none";
+        } else {
+          alert("刪除失敗：" + data.error);
+        }
+      });
+  }
+// 載入全部結果
+  function loadResults() {
+    const gender = document.getElementById("genderFilter").value;
+    const url = gender ? `/results?gender=${gender}` : "/results";
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const list = document.getElementById("resultsList");
+        list.innerHTML = "";
+        document.getElementById("noResultMsg").style.display = data.length ? "none" : "block";
+        data.forEach(item => {
+          const li = document.createElement("li");
+          li.className = "list-group-item d-flex justify-content-between align-items-center";
+          li.innerHTML = `${item.index}. ${item.name} - ${item.song} <button class="btn btn-sm btn-info">查看</button>`;
+          li.querySelector("button").onclick = () => showDetail(item.id);
+          list.appendChild(li);
+        });
+      });
+  }
+
+  // 搜尋結果
+  function searchResult() {
+    const id = document.getElementById("searchId").value.trim();
+    const list = document.getElementById("resultsList");
+
+    if (!id) {
+      loadResults(); // 沒輸入就顯示全部
+      return;
+    }
+
+    fetch(`/result/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          document.getElementById("noResultMsg").style.display = "block";
+          list.innerHTML = "";
+          return;
+        }
+
+        list.innerHTML = "";
+        document.getElementById("noResultMsg").style.display = "none";
+
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+        li.innerHTML = `${data.index || data.id}. ${data.name} - ${data.song} <button class="btn btn-sm btn-info">查看</button>`;
+        li.querySelector("button").onclick = () => showDetail(data.id);
+        list.appendChild(li);
+
+        // 自動捲動到結果區
+        list.scrollIntoView({ behavior: "smooth" });
+      });
+  }
+
+  // 顯示詳細內容
+  function showDetail(id) {
+    fetch(`/result/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+        document.getElementById("detailId").textContent = data.id;
+        document.getElementById("detailName").textContent = data.name;
+        document.getElementById("detailGender").textContent = data.gender;
+        document.getElementById("detailSong").textContent = data.song;
+        document.getElementById("detailLink").textContent = data.link;
+        document.getElementById("detailLink").href = data.link;
+        document.getElementById("detailTime").textContent = data.timestamp;
+        window.currentId = data.id;
+
+        const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+        modal.show();
+      });
+  }
+
+  // 刪除目前顯示的結果
+  function deleteCurrent() {
+    if (!window.currentId) return;
+    if (!confirm("確定要刪除此結果嗎？")) return;
+    fetch(`/delete/${window.currentId}`, { method: "DELETE" })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert("已刪除");
+          loadResults();
+          const modalEl = document.getElementById('resultModal');
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          modal.hide();
+        } else {
+          alert("刪除失敗：" + data.error);
+        }
+      });
+  }
+
+  // 重置 ID
+  function resetIds() {
+    if (!confirm("⚠️ 確定要重置所有 ID 嗎？此動作不可復原！")) return;
+    fetch("/reset_ids", { method: "POST" })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert("✅ 所有 ID 已重置");
+          loadResults();
+        } else {
+          alert("重置失敗：" + data.error);
+        }
+      });
+  }
+
+  // 匯出 Excel
+  function exportExcel() {
+    window.location.href = "/export";
+  }
+
+  // 頁面載入時 → 同時載入設定、結果、通知
+  window.onload = () => {
+    loadConfig();
+    loadResults();
+    loadNotification();
+  };
+  </script>
+</body>
+</html>
