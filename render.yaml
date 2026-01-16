@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: songmate-web
+    env: docker
+    dockerfilePath: Dockerfile
+    autoDeploy: true
