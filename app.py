@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template
+from toast import show_notification
 import requests
 import sqlite3
 import pandas as pd
@@ -305,6 +306,11 @@ def get_result(song_id):
         "link": row[4],
         "timestamp": row[5]
     })
+
+@app.route("/notify")
+def notify():
+    show_notification("**操作成功！**\n請查看結果")
+    return "通知已顯示"
 
 # ======================
 # 管理頁面路由
