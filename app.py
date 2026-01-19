@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from toast import show_notification
+from flask import Flask, redirect, url_for, session
+from authlib.integrations.flask_client import OAuth
 import requests
 import sqlite3
 import pandas as pd
@@ -18,6 +20,34 @@ CLIENT_SECRET = "1ebde6feea114d2ca5512c5af5eae6b0"
 
 spotify_token = None
 spotify_token_expiry = 0
+
+app = Flask(__name__)
+app.secret_key = "your_secret_key"  # 用於 session
+
+# 設定 OAuth
+oauth = OAuth(app)
+microsoft = oauth.register(
+    name="microsoft",
+    client_id="d952e562-dd22-4a94-9dff-36593a201f31",   # Application (client) ID
+    client_secret="AiK8Q~1zOKx3Dq5fm.pjhjCK6cQsPvgW1pWCcab0",                   # 需要在 Azure 建立
+    authorize_url="https://login.microsoftonline.com/00057328-0b9c-443f-ae16-0b2d1761430d/oauth2/v2.0/authorize",  # tenant ID
+    access_token_url="https://login.microsoftonline.com/00057328-0b9c-443f-ae16-0b2d1761430d/oauth2/v2.0/token",
+    client_kwargs={
+        "scope": "openid email profile User.Read"
+    }
+)
+
+@app.route("/login/microsoft")
+def login_microsoft():
+    redirect_uri = url_for("authorize_microsoft", _external=True)
+    return microsoft.authorize_redirect(redirect_uri)
+
+@app.route("/login/callback/microsoft")
+def authorize_microsoft():
+    token = microsoft.authorize_access_token()
+    user_info = microsoft.get("https://graph.microsoft.com/v1.0/me").json()
+    session["user"] = user_info
+    return f"登入成功！歡迎 {user_info['userPrincipalName']}"
 
 def get_spotify_token():
     global spotify_token, spotify_token_expiry
