@@ -309,8 +309,8 @@ def get_result(song_id):
 
 @app.route("/notify")
 def notify():
-    show_notification("**操作成功！**\n請查看結果")
-    return "通知已顯示"
+    result = show_notification("**操作成功！**\n請查看結果", level="success")
+    return jsonify(result)
 
 # ======================
 # 管理頁面路由
