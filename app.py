@@ -48,10 +48,13 @@ def login_page():
 
 @app.route("/login/callback/microsoft")
 def authorize_microsoft():
-    token = microsoft.authorize_access_token()
-    user_info = microsoft.get("https://graph.microsoft.com/v1.0/me").json()
-    session["user"] = user_info
-    return f"登入成功！歡迎 {user_info['userPrincipalName']}"
+    try:
+        token = microsoft.authorize_access_token()
+        user_info = microsoft.get("https://graph.microsoft.com/v1.0/me").json()
+        session["user"] = user_info
+        return f"登入成功！歡迎 {user_info['userPrincipalName']}"
+    except Exception as e:
+        return f"登入失敗：{str(e)}"
 
 def get_spotify_token():
     global spotify_token, spotify_token_expiry
