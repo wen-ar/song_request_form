@@ -134,33 +134,36 @@
       });
   });
 
-  // 顯示通知彈窗（只顯示一次，版本更新後再顯示）
   function showNotification(config) {
     const deadline = config.deadline || "";
     const notifyContent = config.notification_content || "";
     const version = config.version || "1.0.0";
-
-    // 檢查 localStorage 是否已顯示過這個版本
+  
     const shownVersion = localStorage.getItem("notifyVersion");
     if (shownVersion === version) {
-      return; // 已顯示過，不再跳出
+      return;
     }
-
+  
     let deadlineText = "";
     if (deadline.includes(" ")) {
       const [date, time] = deadline.split(" ");
       deadlineText = `回應收集到：${date} ${time}`;
     }
 
+    // 加入登入按鈕
     const body = `
       <p>${notifyContent}</p>
       <p>${deadlineText}</p>
       <p>版本號 ${version}</p>
+      <div class="mt-3">
+        <a href="/login/microsoft" class="btn btn-primary">用 Microsoft 登入</a>
+      </div>
     `;
     document.getElementById("notifyBody").innerHTML = body;
-
+  
     new bootstrap.Modal(document.getElementById('notifyModal')).show();
-
+    localStorage.setItem("notifyVersion", version);
+  }
     // 記錄已顯示的版本
     localStorage.setItem("notifyVersion", version);
   }
