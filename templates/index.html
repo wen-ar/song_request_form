@@ -12,12 +12,12 @@
   <form id="songForm">
     <div class="mb-3">
       <label for="name" class="form-label">姓名</label>
-      <input type="text" class="form-control" id="name" required>
+      <input type="text" class="form-control" id="name" name="name" required>
     </div>
 
     <div class="mb-3">
       <label for="gender" class="form-label">性別</label>
-      <select class="form-select" id="gender" required>
+      <select class="form-select" id="gender" name="gender" required>
         <option value="">請選擇</option>
         <option value="男">男</option>
         <option value="女">女</option>
@@ -27,14 +27,14 @@
     <!-- 歌曲名稱 + 建議清單 -->
     <div class="mb-3 position-relative">
       <label for="songName" class="form-label">歌曲名稱</label>
-      <input type="text" class="form-control" id="songName" required>
+      <input type="text" class="form-control" id="songName" name="songName" required aria-autocomplete="list" aria-controls="songSuggestions">
       <!-- 建議清單會顯示在輸入框下方 -->
-      <div id="songSuggestions" class="list-group position-absolute w-100" style="z-index:1000;"></div>
+      <div id="songSuggestions" class="list-group position-absolute w-100" style="z-index:1000;" role="listbox"></div>
     </div>
 
     <div class="mb-3">
       <label for="songLink" class="form-label">Spotify 連結</label>
-      <input type="url" class="form-control" id="songLink" required>
+      <input type="url" class="form-control" id="songLink" name="songLink" required placeholder="https://open.spotify.com/..." >
     </div>
 
     <button type="submit" class="btn btn-primary">送出</button>
@@ -102,6 +102,10 @@
       } else {
         alert("送出失敗：" + data.error);
       }
+    })
+    .catch(err => {
+      console.error("提交失敗：", err);
+      alert("送出發生錯誤，請稍後再試。");
     });
   });
 
@@ -118,9 +122,11 @@
       .then(res => res.json())
       .then(data => {
         box.innerHTML = "";
-        data.forEach(item => {
+        data.forEach((item, idx) => {
           const a = document.createElement("a");
           a.className = "list-group-item list-group-item-action";
+          a.setAttribute("role", "option");
+          a.setAttribute("id", "suggestion-" + idx);
           a.innerHTML = `<strong>${item.name}</strong> - ${item.artist}`;
           a.href = "#";
           a.onclick = (e) => {
@@ -131,6 +137,9 @@
           };
           box.appendChild(a);
         });
+      })
+      .catch(err => {
+        console.error("搜尋建議錯誤：", err);
       });
   });
 
@@ -138,11 +147,13 @@
     const deadline = config.deadline || "";
     const notifyContent = config.notification_content || "";
     const version = config.version || "1.0.0";
-  
+
     let deadlineText = "";
-    if (deadline.includes(" ")) {
+    if (deadline && deadline.includes(" ")) {
       const [date, time] = deadline.split(" ");
       deadlineText = `回應收集到：${date} ${time}`;
+    } else if (deadline) {
+      deadlineText = `回應收集到：${deadline}`;
     }
 
     // 加入登入按鈕
@@ -155,11 +166,16 @@
       </div>
     `;
     document.getElementById("notifyBody").innerHTML = body;
-  
+
+    // 記錄已顯示的版本（放在函式內，確保 version 可用）
+    try {
+      localStorage.setItem("notifyVersion", version);
+    } catch (e) {
+      // 在私密/無痕模式 localStorage 可能會失敗
+      console.warn("無法寫入 localStorage:", e);
+    }
+
     new bootstrap.Modal(document.getElementById('notifyModal')).show();
-  }
-    // 記錄已顯示的版本
-    localStorage.setItem("notifyVersion", version);
   }
 
   // 頁面載入時 → 讀取設定並顯示通知
@@ -168,6 +184,9 @@
       .then(res => res.json())
       .then(config => {
         showNotification(config);
+      })
+      .catch(err => {
+        console.error("讀取 config 錯誤：", err);
       });
   };
   </script>
