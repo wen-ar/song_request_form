@@ -139,11 +139,6 @@
     const notifyContent = config.notification_content || "";
     const version = config.version || "1.0.0";
   
-    const shownVersion = localStorage.getItem("notifyVersion");
-    if (shownVersion === version) {
-      return;
-    }
-  
     let deadlineText = "";
     if (deadline.includes(" ")) {
       const [date, time] = deadline.split(" ");
@@ -162,7 +157,6 @@
     document.getElementById("notifyBody").innerHTML = body;
   
     new bootstrap.Modal(document.getElementById('notifyModal')).show();
-    localStorage.setItem("notifyVersion", version);
   }
     // 記錄已顯示的版本
     localStorage.setItem("notifyVersion", version);
