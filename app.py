@@ -30,7 +30,7 @@ microsoft = oauth.register(
     name="microsoft",
     client_id="d952e562-dd22-4a94-9dff-36593a201f31",   # Application (client) ID
     client_secret="AiK8Q~1zOKx3Dq5fm.pjhjCK6cQsPvgW1pWCcab0",                   # 需要在 Azure 建立
-    servermetadata_url="https://login.microsoftonline.com/<00057328-0b9c-443f-ae16-0b2d1761430d>/v2.0/.well-known/openid-configuration",
+    server_metadata_url="https://login.microsoftonline.com/<00057328-0b9c-443f-ae16-0b2d1761430d>/v2.0/.well-known/openid-configuration",
     client_kwargs={
         "scope": "openid email profile User.Read"
     }
