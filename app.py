@@ -48,17 +48,17 @@ def authorize_microsoft():
     try:
         token = microsoft.authorizeaccesstoken()
         user_info = microsoft.get("https://graph.microsoft.com/v1.0/me").json()
-     session.permanent = True
-     session["user"] = user_info
-
-     return redirect(url_for("index"))
+        session.permanent = True
+        session["user"] = user_info
+   
+        return redirect(url_for("index"))
     except Exception as e:
         return f"登入失敗：{str(e)}"
 
 @app.route("/logout")
 def logout():
- session.pop("user", None)
- return redirect(url_for("index"))
+    session.pop("user", None)
+    return redirect(url_for("index"))
 def get_spotify_token():
     global spotify_token, spotify_token_expiry
     if spotify_token and time.time() < spotify_token_expiry:
