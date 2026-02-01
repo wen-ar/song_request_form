@@ -42,10 +42,6 @@ def login_microsoft():
     redirect_uri = url_for("authorize_microsoft", _external=True)
     return microsoft.authorize_redirect(redirect_uri)
 
-@app.route("/login")
-def login_page():
-    return render_template("login.html")
-
 @app.route("/login/callback/microsoft")
 def authorize_microsoft():
     try:
