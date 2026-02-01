@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from toast import show_notification
-from flask import Flask, redirect, url_for, session
+from flask import Flask, session, redirect, url_for
 from datetime import timedelta
 from authlib.integrations.flask_client import OAuth
 import requests
@@ -24,7 +24,7 @@ spotify_token_expiry = 0
 
 app = Flask(__name__)
 app.secret_key = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"  # 用於 session
-app.permanent_session_lifetime = timedelta(day=14)
+app.permanentsessionlifetime = timedelta(days=7)
 
 # 設定 OAuth
 oauth = OAuth(app)
@@ -40,13 +40,13 @@ microsoft = oauth.register(
 
 @app.route("/login/microsoft")
 def login_microsoft():
-    redirect_uri = url_for("authorize_microsoft", _external=True)
-    return microsoft.authorize_redirect(redirect_uri)
+    redirecturi = urlfor("authorizemicrosoft", _external=True)
+    return microsoft.authorizeredirect(redirecturi)
 
 @app.route("/login/callback/microsoft")
 def authorize_microsoft():
     try:
-        token = microsoft.authorize_access_token()
+        token = microsoft.authorizeaccesstoken()
         user_info = microsoft.get("https://graph.microsoft.com/v1.0/me").json()
      session.permanent = True
      session["user"] = user_info
@@ -57,7 +57,7 @@ def authorize_microsoft():
 
 @app.route("/logout")
 def logout():
- defsensing.pop("user", None)
+ session.pop("user", None)
  return redirect(url_for("index"))
 def get_spotify_token():
     global spotify_token, spotify_token_expiry
