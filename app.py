@@ -46,7 +46,7 @@ def login_microsoft():
 @app.route("/login/callback/microsoft")
 def authorize_microsoft():
     try:
-        token = microsoft.authorizeaccesstoken()
+        token = microsoft.authorize_access_token()
         user_info = microsoft.get("https://graph.microsoft.com/v1.0/me").json()
         session.permanent = True
         session["user"] = user_info
