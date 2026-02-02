@@ -19,7 +19,8 @@
           <span class="navbar-text me-2">目前登入：{{ session["user"]["userPrincipalName"] }}</span>
           <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm">登出</a>
         {% else %}
-          <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary btn-sm">登入</a>
+          <!-- 未登入時只顯示「登入」按鈕，點擊後跳出選擇彈窗 -->
+          <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
         {% endif %}
       </div>
     </div>
@@ -83,15 +84,13 @@
   
         <div class="modal-body" id="notifyBody" style="white-space: pre-line;">
           {% if not session.get("user") %}
-            <!-- 未登入時顯示在 body -->
-            <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary">登入</a>
+            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
           {% endif %}
         </div>
   
         <div class="modal-footer">
           {% if session.get("user") %}
-            <!-- 已登入時顯示在 footer -->
-            <span class="me-2 text-success">您已登入：{{ session["user"]["userPrincipalName"] }}</span>
+            <span class="me-2 text-success">您已登入：{{ session["user"]["email"] }}</span>
           {% endif %}
           <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">我知道了</button>
         </div>
@@ -99,7 +98,24 @@
     </div>
   </div>
   <script>
-  // 表單送出
+
+  <!-- 登入選擇彈窗 -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">選擇登入方式</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary w-100 mb-2">使用 Microsoft 登入</a>
+          <a href="{{ url_for('login_google') }}" class="btn btn-danger w-100 mb-2">使用 Google 登入</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    // 表單送出
   document.getElementById("songForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
