@@ -82,7 +82,13 @@
         </div>
         <div class="modal-body" id="notifyBody" style="white-space: pre-line;"></div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">我知道了</button>
+          {% if session.get("user") %}
+            <span class="me-2 text-success">您已登入：{{ session["user"]["userPrincipalName"] }}</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">登出</a>
+          {% else %}
+            <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary">用 Microsoft 登入</a>
+          {% endif %}
+          <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">我知道了</button
         </div>
       </div>
     </div>
