@@ -80,20 +80,24 @@
           <h5 class="modal-title">通知</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body" id="notifyBody" style="white-space: pre-line;"></div>
-        <div class="modal-footer">
-          {% if session.get("user") %}
-            <span class="me-2 text-success">您已登入：{{ session["user"]["userPrincipalName"] }}</span>
-            <a href="{{ url_for('logout') }}" class="btn btn-secondary">登出</a>
-          {% else %}
+  
+        <div class="modal-body" id="notifyBody" style="white-space: pre-line;">
+          {% if not session.get("user") %}
+            <!-- 未登入時顯示在 body -->
             <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary">用 Microsoft 登入</a>
           {% endif %}
-          <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">我知道了</button
+        </div>
+  
+        <div class="modal-footer">
+          {% if session.get("user") %}
+            <!-- 已登入時顯示在 footer -->
+            <span class="me-2 text-success">您已登入：{{ session["user"]["userPrincipalName"] }}</span>
+          {% endif %}
+          <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">我知道了</button>
         </div>
       </div>
     </div>
   </div>
-
   <script>
   // 表單送出
   document.getElementById("songForm").addEventListener("submit", function(e) {
