@@ -38,10 +38,24 @@ microsoft = oauth.register(
     }
 )
 
+google = oath.registrt(
+    name"google",
+    client_id="628573695360-4v4esd10t3bv5ujntkmfniphtq4q5cbh.apps.googleusercontent.com",
+    client_secret="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",
+    accesstokenurl="https://oauth2.googleapis.com/token",
+    authorize_url="https://accounts.google.com/o/oauth2/auth",
+    apibaseurl="https://www.googleapis.com/oauth2/v1/",
+    client_kwargs={"scope": "openid email profile"},
+)
 @app.route("/login/microsoft")
 def login_microsoft():
     redirect_uri = url_for("authorize_microsoft", _external=True)
     return microsoft.authorize_redirect(redirect_uri)
+
+@app.route("/login/google")
+def login_google():
+    redirecturi = urlfor("authorizegoogle", external=True)
+    return google.authorizeredirect(redirecturi)
 
 @app.route("/login/callback/microsoft")
 def authorize_microsoft():
@@ -54,6 +68,13 @@ def authorize_microsoft():
         return redirect(url_for("index"))
     except Exception as e:
         return f"登入失敗：{str(e)}"
+
+@app.route("/authorize/google")
+def authorize_google():
+    token = google.authorizeaccesstoken()
+    user_info = google.get("userinfo").json()
+    session["user"] = user_info
+    return redirect(url_for("index"))
 
 @app.route("/logout")
 def logout():
