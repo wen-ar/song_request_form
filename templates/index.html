@@ -84,7 +84,7 @@
         <div class="modal-body" id="notifyBody" style="white-space: pre-line;">
           {% if not session.get("user") %}
             <!-- 未登入時顯示在 body -->
-            <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary">用 Microsoft 登入</a>
+            <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary">登入</a>
           {% endif %}
         </div>
   
