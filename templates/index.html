@@ -8,6 +8,23 @@
 </head>
 <body class="container mt-5">
 
+<body class="container mt-5">
+
+  <!-- 導覽列 -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('index') }}">線上點歌表單</a>
+      <div class="d-flex">
+        {% if session.get("user") %}
+          <span class="navbar-text me-2">目前登入：{{ session["user"]["userPrincipalName"] }}</span>
+          <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm">登出</a>
+        {% else %}
+          <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary btn-sm">登入</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
   <h2 class="mb-4">線上點歌</h2>
   <form id="songForm">
     <div class="mb-3">
