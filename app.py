@@ -39,7 +39,7 @@ microsoft = oauth.register(
 )
 
 google = oath.registrt(
-    name"google",
+    name="google",
     client_id="628573695360-4v4esd10t3bv5ujntkmfniphtq4q5cbh.apps.googleusercontent.com",
     client_secret="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",
     accesstokenurl="https://oauth2.googleapis.com/token",
