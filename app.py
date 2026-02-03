@@ -29,7 +29,9 @@ app.permanentsessionlifetime = timedelta(days=7)
 # 管理員清單
 ADMIN_EMAILS = ["huiyingl936@gmail.com", "S0702265@o365.kh.edu.tw"]
 
+# ======================
 # 設定 OAuth
+# ======================
 oauth = OAuth(app)
 microsoft = oauth.register(
     name="microsoft",
@@ -48,6 +50,10 @@ google = oauth.register(
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
 )
+
+# ======================
+# 登入
+# ======================
 @app.route("/login/microsoft")
 def login_microsoft():
     redirect_uri = url_for("authorize_microsoft", _external=True)
@@ -78,10 +84,17 @@ def authorize_google():
     session["user"] = user_info
     return redirect(url_for("index"))
 
+# ======================
+# 登出
+# ======================
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect(url_for("index"))
+
+# ======================
+# Spotify 請求
+# ======================
 def get_spotify_token():
     global spotify_token, spotify_token_expiry
     if spotify_token and time.time() < spotify_token_expiry:
@@ -205,10 +218,15 @@ def submit():
     if not all([name, gender, song, link]):
         return jsonify({"error": "欄位不可為空"}), 400
 
+    # 從 session 取 email，如果沒有登入就存 None
+    email = session["user"]["email"] if session.get("user") else None
+
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
-    cur.execute("INSERT INTO songs (name, gender, song, link) VALUES (?, ?, ?, ?)",
-                (name, gender, song, link))
+    cur.execute(
+        "INSERT INTO songs (name, gender, song, link, email) VALUES (?, ?, ?, ?, ?)",
+        (name, gender, song, link, email)
+    )
     conn.commit()
     conn.close()
 
@@ -307,6 +325,9 @@ def delete_song(song_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ======================
+# 刪除所有結果
+# ======================
 @app.route("/delete_all", methods=["DELETE"])
 def delete_all_songs():
     try:
@@ -350,6 +371,9 @@ def get_results():
         })
     return jsonify(results)
 
+# ======================
+# 搜尋 ID
+# ======================
 @app.route("/result/<int:song_id>")
 def get_result(song_id):
     conn = sqlite3.connect("database.db")
