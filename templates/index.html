@@ -14,7 +14,7 @@
       <a class="navbar-brand" href="{{ url_for('index') }}">線上點歌表單</a>
       <div class="d-flex">
         {% if session.get("user") %}
-          <span class="navbar-text me-2">目前登入：{{ session["user"]["userPrincipalName"] }}</span>
+          <span class="navbar-text me-2">目前登入：{{ session["user"].get("email") }}</span>
           <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm">登出</a>
         {% else %}
           <!-- 未登入時只顯示「登入」按鈕，點擊後跳出選擇彈窗 -->
@@ -189,6 +189,11 @@
         deadlineText = `回應收集到：${deadline}`;
       }
 
+      let loginText = "";
+      {% if session.get("user") %}
+        loginText = "您已登入：" + "{{ session['user']['email'] }}";
+      {% endif %}
+      
       const body = `
         <p>${notifyContent}</p>
         <p>${deadlineText}</p>
