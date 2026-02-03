@@ -70,7 +70,7 @@ def authorize_microsoft():
 @app.route("/authorize/google")
 def authorize_google():
     token = google.authorize_access_token()
-    user_info = google.get("userinfo").json()
+    user_info = google.get("https://www.googleapis.com/oauth2/v1/userinfo").json()
     session["user"] = user_info
     return redirect(url_for("index"))
 
