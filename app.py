@@ -42,9 +42,7 @@ google = oauth.register(
     name="google",
     client_id="628573695360-r3kaekifha3u164l09parhvjvlkerbjl.apps.googleusercontent.com",
     client_secret="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",
-    access_token_url="https://oauth2.googleapis.com/token",
-    authorize_url="https://accounts.google.com/o/oauth2/auth",
-    api_base_url="https://www.googleapis.com/oauth2/v1/",
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
 )
 @app.route("/login/microsoft")
