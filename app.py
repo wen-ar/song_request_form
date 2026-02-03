@@ -26,6 +26,9 @@ app = Flask(__name__)
 app.secret_key = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"  # 用於 session
 app.permanentsessionlifetime = timedelta(days=7)
 
+# 管理員清單
+ADMIN_EMAILS = ["huiyingl936@gmail.com", "s0702265@o365.kh.edu.tw"]
+
 # 設定 OAuth
 oauth = OAuth(app)
 microsoft = oauth.register(
@@ -384,6 +387,9 @@ def admin_page():
 # ======================
 @app.route("/")
 def index():
+    if not session.get("user") or session["user"].get("email") not in ADMIN_EMAILS:
+        # 非管理員 → 顯示錯誤頁面 
+        return render_template("not_admin.html")
     return render_template("index.html")
 
 # ======================
