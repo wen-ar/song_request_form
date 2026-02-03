@@ -20,6 +20,9 @@
           <!-- 未登入時只顯示「登入」按鈕，點擊後跳出選擇彈窗 -->
           <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
         {% endif %}
+        {% if session.get("user") and session["user"]["email"] in ADMIN_EMAILS %}
+          <a href="{{ url_for('admin_page') }}" class="btn btn-warning btn-sm">管理頁面</a>
+        {% endif %}
       </div>
     </div>
   </nav>
