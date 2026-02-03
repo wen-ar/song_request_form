@@ -42,9 +42,9 @@ google = oauth.register(
     name="google",
     client_id="628573695360-4v4esd10t3bv5ujntkmfniphtq4q5cbh.apps.googleusercontent.com",
     client_secret="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",
-    accesstokenurl="https://oauth2.googleapis.com/token",
+    access_token_url="https://oauth2.googleapis.com/token",
     authorize_url="https://accounts.google.com/o/oauth2/auth",
-    apibaseurl="https://www.googleapis.com/oauth2/v1/",
+    api_base_url="https://www.googleapis.com/oauth2/v1/",
     client_kwargs={"scope": "openid email profile"},
 )
 @app.route("/login/microsoft")
@@ -54,8 +54,8 @@ def login_microsoft():
 
 @app.route("/login/google")
 def login_google():
-    redirecturi = urlfor("authorizegoogle", external=True)
-    return google.authorizeredirect(redirecturi)
+    redirect_uri = urlfor("authorizegoogle", external=True)
+    return google.authorize_redirect(redirect_uri)
 
 @app.route("/login/callback/microsoft")
 def authorize_microsoft():
@@ -71,7 +71,7 @@ def authorize_microsoft():
 
 @app.route("/authorize/google")
 def authorize_google():
-    token = google.authorizeaccesstoken()
+    token = google.authorize_access_token()
     user_info = google.get("userinfo").json()
     session["user"] = user_info
     return redirect(url_for("index"))
