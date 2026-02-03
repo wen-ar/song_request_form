@@ -112,8 +112,7 @@
           <p><strong>ID:</strong> <span id="detailId"></span></p>
           <p><strong>姓名:</strong> <span id="detailName"></span></p>
           <p><strong>性別:</strong> <span id="detailGender"></span></p>
-          <p><strong>Email：</strong> {{ email }}</p>
-          <p><strong>歌曲:</strong> <span id="detailSong"></span></p>
+          <p><strong>Email：</strong> {{ result.email if result.email else "無" }}</p>
           <p><strong>連結:</strong> <a id="detailLink" href="#" target="_blank"></a></p>
           <p><strong>填寫時間:</strong> <span id="detailTime"></span></p>
         </div>
