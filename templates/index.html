@@ -184,9 +184,9 @@
       let deadlineText = "";
       if (deadline && deadline.includes(" ")) {
         const [date, time] = deadline.split(" ");
-        deadlineText = 回應收集到：${date} ${time};
+        deadlineText = `回應收集到：${date} ${time}`;
       } else if (deadline) {
-        deadlineText = 回應收集到：${deadline};
+        deadlineText = `回應收集到：${deadline}`;
       }
 
       const body = `
