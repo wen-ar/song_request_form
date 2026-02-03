@@ -27,7 +27,7 @@ app.secret_key = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8
 app.permanentsessionlifetime = timedelta(days=7)
 
 # 管理員清單
-ADMIN_EMAILS = ["huiyingl936@gmail.com", "s0702265@o365.kh.edu.tw"]
+ADMIN_EMAILS = ["huiyingl936@gmail.com", "S0702265@o365.kh.edu.tw"]
 
 # 設定 OAuth
 oauth = OAuth(app)
