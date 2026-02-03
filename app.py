@@ -380,6 +380,9 @@ def notify():
 # ======================
 @app.route("/admin")
 def admin_page():
+    if not session.get("user") or session["user"].get("email") not in ADMIN_EMAILS:
+        # 非管理員 → 顯示錯誤頁面 
+        return render_template("not_admin.html")
     return render_template("admin.html")
 
 # ======================
@@ -387,10 +390,7 @@ def admin_page():
 # ======================
 @app.route("/")
 def index():
-    if not session.get("user") or session["user"].get("email") not in ADMIN_EMAILS:
-        # 非管理員 → 顯示錯誤頁面 
-        return render_template("not_admin.html")
-    return render_template("index.html")
+        return render_template("index.html")
 
 # ======================
 # 啟動 Flask
