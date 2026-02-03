@@ -381,9 +381,8 @@ def notify():
 @app.route("/admin")
 def admin_page():
     if not session.get("user") or session["user"].get("email") not in ADMIN_EMAILS:
-        # 非管理員 → 顯示錯誤頁面 
-        return render_template("not_admin.html")
-    return render_template("admin.html")
+        return render_template("not_admin.html", ADMIN_EMAILS=ADMIN_EMAILS)
+    return render_template("admin.html", ADMIN_EMAILS=ADMIN_EMAILS)
 
 # ======================
 # 前端入口頁面
