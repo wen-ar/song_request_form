@@ -61,8 +61,9 @@ def authorize_microsoft():
         token = microsoft.authorize_access_token()
         user_info = microsoft.get("https://graph.microsoft.com/v1.0/me").json()
         session.permanent = True
+        if "userPrincipalName" in user_info:
+            user_info["email"] = user_info["userPrincipalName"]
         session["user"] = user_info
-   
         return redirect(url_for("index"))
     except Exception as e:
         return f"登入失敗：{str(e)}"
