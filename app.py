@@ -375,6 +375,12 @@ def notify():
     result = show_notification("**操作成功！**\n請查看結果", level="success")
     return jsonify(result)
 
+@app.route("/result/<int:result_id>")
+def result_detail(result_id):
+    result = get_result_by_id(result_id)  # 假設這是你抓資料的函式
+    email = result.get("email", "無")     # 如果沒有 email 就顯示「無」
+    return render_template("result_detail.html", result=result, email=email)
+
 # ======================
 # 管理頁面路由
 # ======================
