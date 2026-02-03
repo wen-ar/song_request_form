@@ -136,6 +136,7 @@ def init_db():
             gender TEXT NOT NULL,
             song TEXT NOT NULL,
             link TEXT NOT NULL,
+            email TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -262,12 +263,11 @@ def reset_ids():
 # ======================
 # 匯出 Excel API
 # ======================
-
 @app.route("/export")
 def export():
     conn = sqlite3.connect("database.db")
     df = pd.read_sql_query(
-        "SELECT id AS ID, name AS 姓名, gender AS 性別, song AS 歌名, link AS 歌曲連結, timestamp AS 填寫時間 FROM songs",
+        "SELECT id AS ID, name AS 姓名, gender AS 性別, email AS Email, song AS 歌名, link AS 歌曲連結, timestamp AS 填寫時間 FROM songs",
         conn
     )
     conn.close()
@@ -276,7 +276,7 @@ def export():
     df.to_excel(filename, index=False)
 
     return send_file(filename, as_attachment=True)
-
+    
 # ======================
 # 管理設定 API
 # ======================
@@ -343,7 +343,6 @@ def delete_all_songs():
 # ======================
 # 結果清單 & 單一結果 API
 # ======================
-
 @app.route("/results")
 def get_results():
     gender = request.args.get("gender")
@@ -351,9 +350,9 @@ def get_results():
     cursor = conn.cursor()
 
     if gender:
-        cursor.execute("SELECT * FROM songs WHERE gender = ? ORDER BY id", (gender,))
+        cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE gender = ? ORDER BY id", (gender,))
     else:
-        cursor.execute("SELECT * FROM songs ORDER BY id")
+        cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs ORDER BY id")
 
     rows = cursor.fetchall()
     conn.close()
@@ -367,7 +366,8 @@ def get_results():
             "gender": row[2],
             "song": row[3],
             "link": row[4],
-            "timestamp": row[5]
+            "timestamp": row[5],
+            "email": row[6] if row[6] else "無"
         })
     return jsonify(results)
 
@@ -378,7 +378,7 @@ def get_results():
 def get_result(song_id):
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
-    cur.execute("SELECT id, name, gender, song, link, timestamp FROM songs WHERE id = ?", (song_id,))
+    cur.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE id = ?", (song_id,))
     row = cur.fetchone()
     conn.close()
 
@@ -391,7 +391,8 @@ def get_result(song_id):
         "gender": row[2],
         "song": row[3],
         "link": row[4],
-        "timestamp": row[5]
+        "timestamp": row[5],
+        "email": row[6] if row[6] else "無"
     })
 
 @app.route("/notify")
