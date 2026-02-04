@@ -391,6 +391,16 @@ def config_route():
         if "version" in data:
             config["version"] = data["version"]
 
+        # ✅ 更新限制設定
+        if "male_limit_enabled" in data:
+            config["male_limit_enabled"] = data["male_limit_enabled"]
+        if "male_limit_count" in data:
+            config["male_limit_count"] = int(data["male_limit_count"])
+        if "female_limit_enabled" in data:
+            config["female_limit_enabled"] = data["female_limit_enabled"]
+        if "female_limit_count" in data:
+            config["female_limit_count"] = int(data["female_limit_count"])
+
         # 寫回檔案
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
