@@ -160,6 +160,11 @@ def load_config():
     config.setdefault("deadline", "")
     config.setdefault("notification_content", "")
     config.setdefault("version", "1.0.0")
+    # 新增男女限制設定的預設值
+    config.setdefault("male_limit_enabled", False)
+    config.setdefault("male_limit_count", 0)
+    config.setdefault("female_limit_enabled", False)
+    config.setdefault("female_limit_count", 0)
 
     return config
 
@@ -221,6 +226,19 @@ def submit():
 
     # 從 session 取 email，如果沒有登入就存 None
     email = session["user"]["email"] if session.get("user") else None
+    
+    # 檢查性別限制
+    if email:
+        conn = sqlite3.connect("database.db")
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM songs WHERE email = ?", (email,))
+        count = cur.fetchone()[0]
+        conn.close()
+
+        if gender == "男" and config["male_limit_enabled"] and count >= config["male_limit_count"]:
+            return jsonify({"error": "男生已達點歌上限"}), 403
+        if gender == "女" and config["female_limit_enabled"] and count >= config["female_limit_count"]:
+            return jsonify({"error": "女生已達點歌上限"}), 403
 
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
@@ -232,6 +250,67 @@ def submit():
     conn.close()
 
     return jsonify({"success": True})
+
+# ======================
+# 狀態檢查 API
+# ======================
+@app.route("/status")
+def status():
+    config = load_config()
+    now = datetime.now()
+
+    # 預設狀態
+    status = {
+        "accept_responses": config["accept_responses"],
+        "deadline": config["deadline"],
+        "male_limit_enabled": config["male_limit_enabled"],
+        "male_limit_count": config["male_limit_count"],
+        "female_limit_enabled": config["female_limit_enabled"],
+        "female_limit_count": config["female_limit_count"],
+        "current_count": 0,
+        "remaining": None,
+        "message": ""
+    }
+
+    # 檢查是否接受回應
+    if not config["accept_responses"]:
+        status["message"] = "目前不接受回應"
+        return jsonify(status)
+
+    # 檢查截止時間
+    if config["deadline"]:
+        deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
+        if now > deadline_dt:
+            status["message"] = "已超過截止時間"
+            return jsonify(status)
+
+    # 檢查使用者登入與限制
+    if session.get("user"):
+        email = session["user"]["email"]
+        conn = sqlite3.connect("database.db")
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM songs WHERE email = ?", (email,))
+        count = cur.fetchone()[0]
+        conn.close()
+
+        status["current_count"] = count
+
+        # 判斷性別限制
+        gender = session["user"].get("gender")  # 需要在登入時存入
+        if gender == "男" and config["male_limit_enabled"]:
+            status["remaining"] = max(0, config["male_limit_count"] - count)
+        elif gender == "女" and config["female_limit_enabled"]:
+            status["remaining"] = max(0, config["female_limit_count"] - count)
+
+        if status["remaining"] is not None:
+            if status["remaining"] <= 0:
+                status["message"] = "已達點歌上限"
+            else:
+                status["message"] = f"你還可以再點 {status['remaining']} 首歌"
+    else:
+        status["message"] = "尚未登入，請先登入才能點歌"
+
+    return jsonify(status)
 
 # ======================
 # 重置 ID API
