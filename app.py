@@ -210,10 +210,10 @@ def submit():
     if not config["accept_responses"]:
         return jsonify({"error": "目前已停止收集回應"}), 403
 
-    now = datetime.now()
-    deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
-    if now > deadline_dt:
-        return jsonify({"error": "已超過截止日期"}), 403
+    if config["deadlin"]:
+            deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
+            if now > deadline_dt:
+                return jsonify({"error": "已超過截止日期"}), 403
 
     data = request.json
     name = data.get("name")
@@ -226,6 +226,10 @@ def submit():
 
     # 從 session 取 email，如果沒有登入就存 None
     email = session["user"]["email"] if session.get("user") else None
+
+    # 如果登入過，且 session 裡沒有性別，就補上
+    if session.get("user") and "gender" not in session["user"]:
+        session["user"]["gender"] = gender
     
     # 檢查性別限制
     if email:
@@ -279,10 +283,10 @@ def status():
 
     # 檢查截止時間
     if config["deadline"]:
-        deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
-        if now > deadline_dt:
-            status["message"] = "已超過截止時間"
-            return jsonify(status)
+            deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
+            if now > deadline_dt:
+               status["message"] = "已超過截止時間"
+               return jsonify(status)
 
     # 檢查使用者登入與限制
     if session.get("user"):
