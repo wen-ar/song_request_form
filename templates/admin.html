@@ -9,51 +9,50 @@
 <body class="container mt-5">
 
   <!-- 導覽列 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('index') }}">線上點歌表單</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
-        {% if session.get("user") %}
-          <li class="nav-item">
-            <span class="navbar-text me-3 text-white">
-              管理員：{{ session["user"]["email"] }}
-            </span>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm me-2">回首頁</a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">登出</a>
-          </li>
-        {% endif %}
-      </ul>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('index') }}">線上點歌表單</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          {% if session.get("user") %}
+            <li class="nav-item">
+              <span class="navbar-text me-3 text-white">
+                管理員：{{ session["user"]["email"] }}
+              </span>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm me-2">回首頁</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">登出</a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
   
-  <h2 class="mb-4">系統管理設定</h2>
+  <!-- 系統設定 -->
+  <h2 class="mb-4 mt-4">系統管理設定</h2>
   <form id="configForm">
     <div class="form-check mb-3">
       <input class="form-check-input" type="checkbox" id="acceptResponses">
       <label class="form-check-label" for="acceptResponses">是否接受回應</label>
     </div>
-
     <div class="mb-3">
       <label for="deadlineDate" class="form-label">截止日期</label>
       <input type="date" class="form-control" id="deadlineDate">
     </div>
-
     <div class="mb-3">
       <label for="deadlineTime" class="form-label">截止時間</label>
       <input type="time" class="form-control" id="deadlineTime" step="1">
     </div>
-
     <button type="submit" class="btn btn-primary">更新設定</button>
   </form>
 
   <hr class="my-4">
 
+  <!-- 通知設定 -->
   <h2 class="mb-4">通知設定</h2>
   <form id="notifyForm">
     <div class="mb-3">
@@ -69,12 +68,11 @@
 
   <hr class="my-4">
 
+  <!-- 結果清單 -->
   <h2 class="mb-3">收集到的結果</h2>
-
-  <!-- 搜尋與操作 -->
   <div class="row g-2 mb-3">
     <div class="col-6 col-md-auto">
-      <select id="genderFilter" class="form-select">
+      <select id="genderFilter" class="form-select" onchange="loadResults()">
         <option value="">全部</option>
         <option value="男">男生</option>
         <option value="女">女生</option>
@@ -97,10 +95,10 @@
     </div>
   </div>
 
-  <ul id="resultsList" class="list-group mb-3"></ul>
+  <ul id="resultsList" class="list-group mb-5"></ul>
   <p id="noResultMsg" class="text-muted" style="display:none;">找不到符合的結果</p>
 
-  <!-- 詳細內容 Modal -->
+  <!-- 彈出視窗 -->
   <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -112,7 +110,8 @@
           <p><strong>ID:</strong> <span id="detailId"></span></p>
           <p><strong>姓名:</strong> <span id="detailName"></span></p>
           <p><strong>性別:</strong> <span id="detailGender"></span></p>
-          <p><strong>Email：</strong> {{ result.email if result.email else "無" }}</p>
+          <p><strong>歌曲:</strong> <span id="detailSong"></span></p>
+          <p><strong>Email:</strong> <span id="detailEmail"></span></p>
           <p><strong>連結:</strong> <a id="detailLink" href="#" target="_blank"></a></p>
           <p><strong>填寫時間:</strong> <span id="detailTime"></span></p>
         </div>
@@ -124,218 +123,155 @@
     </div>
   </div>
 
+  <!-- JS 功能 -->
   <script>
-  // 載入設定
-  function loadConfig() {
-    fetch("/config")
-      .then(res => res.json())
-      .then(config => {
-        document.getElementById("acceptResponses").checked = !!config.accept_responses;
-        if (config.deadline && config.deadline.includes(" ")) {
-          const [date, time] = config.deadline.split(" ");
-          document.getElementById("deadlineDate").value = date;
-          document.getElementById("deadlineTime").value = time;
-        }
-      });
-  }
-
-  // 更新設定
-  document.getElementById("configForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const date = document.getElementById("deadlineDate").value;
-    const time = document.getElementById("deadlineTime").value;
-    const deadline = date && time ? `${date} ${time}` : "";
-
-    const data = {
-      accept_responses: document.getElementById("acceptResponses").checked,
-      deadline: deadline
-    };
-
-    fetch("/config", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        alert("設定已更新");
-      } else {
-        alert("更新失敗：" + data.error);
-      }
-    });
-  });
-
-  // 載入通知設定
-  function loadNotification() {
-    fetch("/config")
-      .then(res => res.json())
-      .then(config => {
-        document.getElementById("notificationContent").value = config.notification_content || "";
-        document.getElementById("version").value = config.version || "1.0.0";
-      });
-  }
-
-  // 更新通知設定
-  document.getElementById("notifyForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const data = {
-      notification_content: document.getElementById("notificationContent").value,
-      version: document.getElementById("version").value
-    };
-
-    fetch("/config", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        alert("通知已更新");
-      } else {
-        alert("更新失敗：" + data.error);
-      }
-    });
-  });
-
-  // 刪除全部結果
-  function deleteAll() {
-    if (!confirm("⚠️ 確定要刪除所有結果嗎？此動作不可復原！")) return;
-    fetch("/delete_all", { method: "DELETE" })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert("所有結果已刪除");
-          document.getElementById("resultsList").innerHTML = "";
-          document.getElementById("noResultMsg").style.display = "none";
-        } else {
-          alert("刪除失敗：" + data.error);
-        }
-      });
-  }
-// 載入全部結果
-  function loadResults() {
-    const gender = document.getElementById("genderFilter").value;
-    const url = gender ? `/results?gender=${gender}` : "/results";
-
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        const list = document.getElementById("resultsList");
-        list.innerHTML = "";
-        document.getElementById("noResultMsg").style.display = data.length ? "none" : "block";
-        data.forEach(item => {
-          const li = document.createElement("li");
-          li.className = "list-group-item d-flex justify-content-between align-items-center";
-          li.innerHTML = `${item.index}. ${item.name} - ${item.song} <button class="btn btn-sm btn-info">查看</button>`;
-          li.querySelector("button").onclick = () => showDetail(item.id);
-          list.appendChild(li);
+    // 載入設定
+    function loadConfig() {
+      fetch("/config")
+        .then(res => res.json())
+        .then(config => {
+          document.getElementById("acceptResponses").checked = !!config.accept_responses;
+          if (config.deadline && config.deadline.includes(" ")) {
+            const [date, time] = config.deadline.split(" ");
+            document.getElementById("deadlineDate").value = date;
+            document.getElementById("deadlineTime").value = time;
+          }
+          document.getElementById("notificationContent").value = config.notification_content || "";
+          document.getElementById("version").value = config.version || "1.0.0";
         });
-      });
-  }
-
-  // 搜尋結果
-  function searchResult() {
-    const id = document.getElementById("searchId").value.trim();
-    const list = document.getElementById("resultsList");
-
-    if (!id) {
-      loadResults(); // 沒輸入就顯示全部
-      return;
     }
 
-    fetch(`/result/${id}`)
+    // 更新設定
+    function updateConfig(data, successMsg) {
+      fetch("/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
       .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          document.getElementById("noResultMsg").style.display = "block";
-          list.innerHTML = "";
-          return;
-        }
+      .then(data => data.success ? alert(successMsg) : alert("更新失敗：" + data.error));
+    }
 
-        list.innerHTML = "";
-        document.getElementById("noResultMsg").style.display = "none";
+    document.getElementById("configForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const date = document.getElementById("deadlineDate").value;
+      const time = document.getElementById("deadlineTime").value;
+      const data = {
+        accept_responses: document.getElementById("acceptResponses").checked,
+        deadline: date && time ? `${date} ${time}` : ""
+      };
+      updateConfig(data, "設定已更新");
+    });
 
+    document.getElementById("notifyForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const data = {
+        notification_content: document.getElementById("notificationContent").value,
+        version: document.getElementById("version").value
+      };
+      updateConfig(data, "通知已更新");
+    });
+
+    // 載入結果
+    function loadResults() {
+      const gender = document.getElementById("genderFilter").value;
+      const url = gender ? `/results?gender=${gender}` : "/results";
+      fetch(url).then(res => res.json()).then(renderList);
+    }
+
+    function searchResult() {
+      const id = document.getElementById("searchId").value.trim();
+      if (!id) return loadResults();
+      fetch(`/result/${id}`)
+        .then(res => res.json())
+        .then(data => data.error ? renderList([]) : renderList([data]));
+    }
+
+    function renderList(data) {
+      const list = document.getElementById("resultsList");
+      list.innerHTML = "";
+      document.getElementById("noResultMsg").style.display = data.length ? "none" : "block";
+      data.forEach(item => {
         const li = document.createElement("li");
         li.className = "list-group-item d-flex justify-content-between align-items-center";
-        li.innerHTML = `${data.index || data.id}. ${data.name} - ${data.song} <button class="btn btn-sm btn-info">查看</button>`;
-        li.querySelector("button").onclick = () => showDetail(data.id);
+        li.innerHTML = `<span><strong>${item.index || item.id}.</strong> ${item.name} - ${item.song}</span>
+                        <button class="btn btn-sm btn-info" onclick="showDetail('${item.id}')">查看詳細</button>`;
         list.appendChild(li);
-
-        // 自動捲動到結果區
-        list.scrollIntoView({ behavior: "smooth" });
       });
-  }
+    }
 
-  // 顯示詳細內容
-  function showDetail(id) {
-    fetch(`/result/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          alert(data.error);
-          return;
-        }
-        document.getElementById("detailId").textContent = data.id;
-        document.getElementById("detailName").textContent = data.name;
-        document.getElementById("detailGender").textContent = data.gender;
-        document.getElementById("detailSong").textContent = data.song;
-        document.getElementById("detailLink").textContent = data.link;
-        document.getElementById("detailLink").href = data.link;
-        document.getElementById("detailTime").textContent = data.timestamp;
-        window.currentId = data.id;
+    // --- Modal 詳細內容與刪除 ---
+    function showDetail(id) {
+      fetch(`/result/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) return alert(data.error);
+          document.getElementById("detailId").textContent = data.id;
+          document.getElementById("detailName").textContent = data.name;
+          document.getElementById("detailGender").textContent = data.gender;
+          document.getElementById("detailSong").textContent = data.song;
+          document.getElementById("detailEmail").textContent = data.email || "無";
+          document.getElementById("detailLink").textContent = data.link;
+          document.getElementById("detailLink").href = data.link;
+          document.getElementById("detailTime").textContent = data.timestamp;
+          window.currentId = data.id;
 
-        const modal = new bootstrap.Modal(document.getElementById('resultModal'));
-        modal.show();
-      });
-  }
+          new bootstrap.Modal(document.getElementById('resultModal')).show();
+        });
+    }
 
-  // 刪除目前顯示的結果
-  function deleteCurrent() {
-    if (!window.currentId) return;
-    if (!confirm("確定要刪除此結果嗎？")) return;
-    fetch(`/delete/${window.currentId}`, { method: "DELETE" })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert("已刪除");
-          loadResults();
-          const modalEl = document.getElementById('resultModal');
-          const modal = bootstrap.Modal.getInstance(modalEl);
-          modal.hide();
-        } else {
-          alert("刪除失敗：" + data.error);
-        }
-      });
-  }
+    function deleteCurrent() {
+      if (!window.currentId || !confirm("確定要刪除此結果嗎？")) return;
+      fetch(`/delete/${window.currentId}`, { method: "DELETE" })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert("已刪除");
+            loadResults();
+            bootstrap.Modal.getInstance(document.getElementById('resultModal')).hide();
+          } else {
+            alert("刪除失敗：" + data.error);
+          }
+        });
+    }
 
-  // 重置 ID
-  function resetIds() {
-    if (!confirm("⚠️ 確定要重置所有 ID 嗎？此動作不可復原！")) return;
-    fetch("/reset_ids", { method: "POST" })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert("✅ 所有 ID 已重置");
-          loadResults();
-        } else {
-          alert("重置失敗：" + data.error);
-        }
-      });
-  }
+    function deleteAll() {
+      if (confirm("⚠️ 確定要刪除所有結果嗎？此動作不可復原！")) {
+        fetch("/delete_all", { method: "DELETE" })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              alert("所有結果已刪除");
+              loadResults();
+            }
+          });
+      }
+    }
 
-  // 匯出 Excel
-  function exportExcel() {
-    window.location.href = "/export";
-  }
+    function resetIds() {
+      if (confirm("⚠️ 確定要重置所有 ID 嗎？")) {
+        fetch("/reset_ids", { method: "POST" })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              alert("✅ 所有 ID 已重置");
+              loadResults();
+            } else {
+              alert("重置失敗：" + data.error);
+            }
+          });
+      }
+    }
 
-  // 頁面載入時 → 同時載入設定、結果、通知
-  window.onload = () => {
-    loadConfig();
-    loadResults();
-    loadNotification();
-  };
+    function exportExcel() {
+      window.location.href = "/export";
+    }
+
+    // 頁面載入時 → 同時載入設定與結果
+    window.onload = () => {
+      loadConfig();
+      loadResults();
+    };
   </script>
 </body>
 </html>
