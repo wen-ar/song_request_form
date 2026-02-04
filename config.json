@@ -1,6 +1,10 @@
 {
   "accept_responses": true,
-  "deadline": "2026-01-16 00:00:00",
+  "deadline": "2026-02-05 00:00:00",
   "notification_content": "🎵 本次點歌活動開始囉！",
-  "version": "1.0.0"
+  "version": "beta version 1.3.0",
+  "male_limit_enabled": false,
+  "male_limit_count": 0,
+  "female_limit_enabled": false,
+  "female_limit_count": 0
 }
