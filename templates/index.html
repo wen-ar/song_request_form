@@ -28,6 +28,8 @@
   </nav>
 
   <h2 class="mb-4">線上點歌</h2>
+  <!-- 狀態顯示區塊 -->
+  <div id="statusBox" class="mb-3"></div>
   <form id="songForm">
     <div class="mb-3">
       <label for="name" class="form-label">姓名</label>
@@ -216,8 +218,9 @@
       new bootstrap.Modal(document.getElementById('notifyModal')).show();
     }
 
-    // 頁面載入時 → 顯示通知
+    // 頁面載入時 → 顯示通知 & 系統狀態
     window.onload = () => {
+      // 先顯示通知
       fetch("/config")
         .then(res => res.json())
         .then(config => {
@@ -225,6 +228,32 @@
         })
         .catch(err => {
           console.error("讀取 config 錯誤：", err);
+        });
+      
+      // 再顯示系統狀態
+      fetch("/status")
+        .then(res => res.json())
+        .then(data => {
+          const box = document.getElementById("statusBox");
+          let html = "";
+
+          if (!data.accept_responses) {
+            html = `<div class="alert alert-danger"><h3>目前不接受回應</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } else if (data.deadline && new Date() > new Date(data.deadline)) {
+            html = `<div class="alert alert-warning"><h3>已超過截止時間</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } else if (data.remaining !== null && data.remaining <= 0) {
+            html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } else if (data.remaining !== null) {
+            html = `<div class="alert alert-info"><p>你還可以再點 ${data.remaining} 首歌</p></div>`;
+          }
+
+          box.innerHTML = html;
+        })
+        .catch(err => {
+          console.error("讀取 status 錯誤：", err);
         });
     };
   </script>
