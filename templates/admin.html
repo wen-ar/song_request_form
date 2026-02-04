@@ -68,6 +68,30 @@
 
   <hr class="my-4">
 
+  <hr class="my-4">
+
+  <!-- 限制設定 -->
+  <h2 class="mb-4">限制設定</h2>
+  <form id="limitForm">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="maleLimitEnabled">
+          <label class="form-check-label" for="maleLimitEnabled">限制男生點歌數量</label>
+        </div>
+        <input type="number" class="form-control mt-2" id="maleLimitCount" placeholder="男生上限 (首)">
+      </div>
+      <div class="col-md-6">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="femaleLimitEnabled">
+          <label class="form-check-label" for="femaleLimitEnabled">限制女生點歌數量</label>
+        </div>
+        <input type="number" class="form-control mt-2" id="femaleLimitCount" placeholder="女生上限 (首)">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">更新限制</button>
+  </form>
+  
   <!-- 結果清單 -->
   <h2 class="mb-3">收集到的結果</h2>
   <div class="row g-2 mb-3">
@@ -138,6 +162,10 @@
           }
           document.getElementById("notificationContent").value = config.notification_content || "";
           document.getElementById("version").value = config.version || "1.0.0";
+          document.getElementById("maleLimitEnabled").checked = !!config.male_limit_enabled;
+          document.getElementById("maleLimitCount").value = config.male_limit_count || 0;
+          document.getElementById("femaleLimitEnabled").checked = !!config.female_limit_enabled;
+          document.getElementById("femaleLimitCount").value = config.female_limit_count || 0;
         });
     }
 
@@ -172,6 +200,17 @@
       updateConfig(data, "通知已更新");
     });
 
+    document.getElementById("limitForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const data = {
+        male_limit_enabled: document.getElementById("maleLimitEnabled").checked,
+        male_limit_count: parseInt(document.getElementById("maleLimitCount").value) || 0,
+        female_limit_enabled: document.getElementById("femaleLimitEnabled").checked,
+        female_limit_count: parseInt(document.getElementById("femaleLimitCount").value) || 0
+      };
+      updateConfig(data, "限制設定已更新");
+    });
+    
     // 載入結果
     function loadResults() {
       const gender = document.getElementById("genderFilter").value;
