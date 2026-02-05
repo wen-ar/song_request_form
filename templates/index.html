@@ -25,7 +25,7 @@
 
     /* 2. 主容器毛玻璃效果 */
     body.festival-mode .container.mt-5 {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-radius: 24px;
@@ -34,52 +34,59 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
 
-    /* 3. 玻璃擬態 (Glass UI) 通知彈窗 */
-    body.festival-mode .modal-content {
-      background: rgba(255, 255, 255, 0.4) !important; /* 半透明背景 */
-      backdrop-filter: blur(20px) !important;        /* 深層毛玻璃 */
+    /* 3. 白系玻璃擬態 (White Glass UI) - 應用於彈窗與導覽列 */
+    
+    /* 通用玻璃類別：你可以把這個樣式同時給彈窗跟導覽列 */
+    body.festival-mode .modal-content,
+    body.festival-mode .navbar {
+      background: rgba(255, 255, 255, 0.75) !important; 
+      backdrop-filter: blur(20px) !important;
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.4) !important; /* 邊框高亮 */
-      border-radius: 24px !important;                /* 圓角 */
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
-      color: #212529 !important;                     /* 強制深色文字 */
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
     }
 
-    /* 彈窗頭部與標題設定 */
-    body.festival-mode .modal-header {
+    /* 彈窗專屬調整 */
+    body.festival-mode .modal-content {
+      border-radius: 24px !important;
+      color: #212529 !important;
+    }
+
+    body.festival-mode .modal-header, 
+    body.festival-mode .modal-footer {
       border: none !important;
       background: transparent !important;
     }
 
     body.festival-mode .modal-title {
       color: #000 !important;
-      font-weight: bold;
+      font-weight: 800;
     }
 
-    /* 修正彈窗關閉按鈕顏色 */
     body.festival-mode .modal-header .btn-close {
       filter: none !important; 
     }
 
-    /* 彈窗內容區與頁尾 */
-    body.festival-mode .modal-body {
-      color: #212529 !important;
-    }
-
-    body.festival-mode .modal-footer {
-      border: none !important;
-      background: transparent !important;
-    }
-
-    /* 4. 導覽列與表單標籤調整 */
+    /* 4. 導覽列（Navbar）專屬調整 */
     body.festival-mode .navbar {
-      background: rgba(0, 0, 0, 0.2) !important;
-      border-radius: 12px;
-      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px; /* 導覽列圓角稍微收斂一點點 */
+      margin-bottom: 2rem;
+      padding: 0.8rem 1.2rem;
     }
 
-    body.festival-mode .navbar-brand, 
-    body.festival-mode .navbar-text, 
+    /* 調整導覽列文字顏色，使其在白色玻璃上清晰可見 */
+    body.festival-mode .navbar-brand {
+      color: #800000 !important; /* 改用深紅色呼應背景，質感更好 */
+      font-weight: bold;
+      text-shadow: none;
+    }
+
+    body.festival-mode .navbar-text {
+      color: #333 !important;
+      text-shadow: none;
+    }
+
+    /* 5. 表單標籤與標題 (維持金色亮眼感) */
     body.festival-mode .form-label {
       color: #ffd700 !important;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
@@ -90,21 +97,14 @@
       font-weight: bold; 
     }
 
-    /* 5. 彈窗內按鈕 Glass 質感優化 */
-    body.festival-mode .modal-content .btn-primary {
+    /* 6. 按鈕樣式優化 */
+    body.festival-mode .btn-primary {
       border-radius: 12px;
-      background: rgba(13, 110, 253, 0.85) !important;
+      background: rgba(13, 110, 253, 0.9) !important;
       border: none !important;
-      backdrop-filter: blur(5px);
     }
 
-    body.festival-mode .modal-content .btn-outline-primary {
-      border-radius: 12px;
-      border: 1px solid rgba(13, 110, 253, 0.5) !important;
-      color: #0d6efd !important;
-    }
-
-    /* 6. 粒子畫布底層 */
+    /* 7. 粒子畫布 */
     #festival-canvas {
       position: fixed;
       top: 0;
