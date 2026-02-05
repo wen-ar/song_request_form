@@ -45,6 +45,21 @@
       text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
     body.festival-mode h2 { color: #ffd700; font-weight: bold; }
+    
+    /* 修正彈窗文字顏色，確保在節慶模式下依然清晰 */
+    body.festival-mode .modal-content {
+      color: #212529 !important; /* 回復為深灰色/黑色文字 */
+    }
+    
+    body.festival-mode .modal-header .btn-close {
+      filter: none; /* 確保關閉按鈕顏色正常 */
+    }
+    
+    /* 如果你希望彈窗標題顏色明顯一點 */
+    body.festival-mode .modal-title {
+      color: #000 !important;
+      font-weight: bold;
+    }
 
     /* 粒子畫布底層 */
     #festival-canvas {
