@@ -33,6 +33,37 @@
       border: 1px solid rgba(212, 175, 55, 0.3);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
+    /* 玻璃擬態通知彈窗效果 */
+    body.festival-mode .modal-content {
+      background: rgba(255, 255, 255, 0.4) !important; /* 半透明白色背景 */
+      backdrop-filter: blur(15px) !important;        /* 毛玻璃模糊核心 */
+      -webkit-backdrop-filter: blur(15px);           /* 支援 Safari */
+      border: 1px solid rgba(255, 255, 255, 0.3) !important; /* 邊框細線感 */
+      border-radius: 24px !important;                /* 圓角更柔和 */
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2) !important; /* 柔和陰影 */
+      color: #212529 !important;                     /* 確保文字是深色的 */
+    }
+
+    /* 移除彈窗頭部與底部的分界線，讓視覺更統一 */
+    body.festival-mode .modal-header, 
+    body.festival-mode .modal-footer {
+      border: none !important;
+      background: transparent !important;
+    }
+
+    /* 調整按鈕樣式以符合 Glass UI 的質感 */
+    body.festival-mode .modal-content .btn-primary {
+      border-radius: 12px;
+      background: rgba(13, 110, 253, 0.8);
+      border: none;
+      backdrop-filter: blur(5px);
+    }
+
+    body.festival-mode .modal-content .btn-outline-primary {
+      border-radius: 12px;
+      border: 1px solid rgba(13, 110, 253, 0.5);
+      color: #0d6efd !important;
+    }
 
     /* 3. 調整文字與導覽列 */
     body.festival-mode .navbar {
