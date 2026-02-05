@@ -23,39 +23,50 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* 2. 主容器毛玻璃效果 */
-    body.festival-mode .container.mt-5 {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 24px;
-      padding: 40px;
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-    }
-
-    /* 3. 白系玻璃擬態 (White Glass UI) - 應用於彈窗與導覽列 */
-    
-    /* 通用玻璃類別：你可以把這個樣式同時給彈窗跟導覽列 */
-    body.festival-mode .modal-content,
-    body.festival-mode .navbar {
-      background: rgba(255, 255, 255, 0.75) !important; 
+    /* 2. 統一的白系玻璃擬態 (White Glass UI) 核心樣式 */
+    /* 套用到：導覽列、表單容器、通知彈窗 */
+    body.festival-mode .navbar,
+    body.festival-mode .container.mt-5,
+    body.festival-mode .modal-content {
+      background: rgba(255, 255, 255, 0.6) !important; 
       backdrop-filter: blur(20px) !important;
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.6) !important;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+      box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.2) !important;
     }
 
-    /* 彈窗專屬調整 */
+    /* 3. 表單容器專屬細節 (保持比例，不佔滿全螢幕) */
+    body.festival-mode .container.mt-5 {
+      border-radius: 24px;
+      padding: 40px;
+      /* 確保內部的文字（標籤除外）顏色清晰 */
+      color: #212529 !important;
+    }
+
+    /* 4. 導覽列專屬細節 */
+    body.festival-mode .navbar {
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      padding: 0.8rem 1.2rem;
+    }
+
+    body.festival-mode .navbar-brand {
+      color: #800000 !important; /* 深紅標題 */
+      font-weight: bold;
+    }
+
+    body.festival-mode .navbar-text {
+      color: #333 !important;
+    }
+
+    /* 5. 彈窗專屬細節 */
     body.festival-mode .modal-content {
       border-radius: 24px !important;
-      color: #212529 !important;
     }
 
     body.festival-mode .modal-header, 
     body.festival-mode .modal-footer {
       border: none !important;
-      background: transparent !important;
     }
 
     body.festival-mode .modal-title {
@@ -63,48 +74,30 @@
       font-weight: 800;
     }
 
-    body.festival-mode .modal-header .btn-close {
-      filter: none !important; 
-    }
-
-    /* 4. 導覽列（Navbar）專屬調整 */
-    body.festival-mode .navbar {
-      border-radius: 16px; /* 導覽列圓角稍微收斂一點點 */
-      margin-bottom: 2rem;
-      padding: 0.8rem 1.2rem;
-    }
-
-    /* 調整導覽列文字顏色，使其在白色玻璃上清晰可見 */
-    body.festival-mode .navbar-brand {
-      color: #800000 !important; /* 改用深紅色呼應背景，質感更好 */
-      font-weight: bold;
-      text-shadow: none;
-    }
-
-    body.festival-mode .navbar-text {
-      color: #333 !important;
-      text-shadow: none;
-    }
-
-    /* 5. 表單標籤與標題 (維持金色亮眼感) */
+    /* 6. 表單內部文字調整 */
+    /* 讓表單內的標籤 (Label) 維持金色，方便在深紅背景襯托下閱讀 */
     body.festival-mode .form-label {
       color: #ffd700 !important;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      font-weight: 600;
     }
 
+    /* 如果你希望表單內的 h2 標題也更有質感 */
     body.festival-mode h2 { 
       color: #ffd700; 
-      font-weight: bold; 
+      font-weight: bold;
+      margin-bottom: 1.5rem;
     }
 
-    /* 6. 按鈕樣式優化 */
+    /* 7. 按鈕樣式 */
     body.festival-mode .btn-primary {
       border-radius: 12px;
       background: rgba(13, 110, 253, 0.9) !important;
       border: none !important;
+      padding: 10px 25px;
     }
 
-    /* 7. 粒子畫布 */
+    /* 8. 粒子畫布 */
     #festival-canvas {
       position: fixed;
       top: 0;
