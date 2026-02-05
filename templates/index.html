@@ -23,7 +23,7 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* 2. 毛玻璃容器：讓原本的表單浮起來 */
+    /* 2. 主容器毛玻璃效果 */
     body.festival-mode .container.mt-5 {
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(12px);
@@ -33,66 +33,78 @@
       border: 1px solid rgba(212, 175, 55, 0.3);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
-    /* 玻璃擬態通知彈窗效果 */
+
+    /* 3. 玻璃擬態 (Glass UI) 通知彈窗 */
     body.festival-mode .modal-content {
-      background: rgba(255, 255, 255, 0.4) !important; /* 半透明白色背景 */
-      backdrop-filter: blur(15px) !important;        /* 毛玻璃模糊核心 */
-      -webkit-backdrop-filter: blur(15px);           /* 支援 Safari */
-      border: 1px solid rgba(255, 255, 255, 0.3) !important; /* 邊框細線感 */
-      border-radius: 24px !important;                /* 圓角更柔和 */
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2) !important; /* 柔和陰影 */
-      color: #212529 !important;                     /* 確保文字是深色的 */
+      background: rgba(255, 255, 255, 0.4) !important; /* 半透明背景 */
+      backdrop-filter: blur(20px) !important;        /* 深層毛玻璃 */
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.4) !important; /* 邊框高亮 */
+      border-radius: 24px !important;                /* 圓角 */
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+      color: #212529 !important;                     /* 強制深色文字 */
     }
 
-    /* 移除彈窗頭部與底部的分界線，讓視覺更統一 */
-    body.festival-mode .modal-header, 
-    body.festival-mode .modal-footer {
+    /* 彈窗頭部與標題設定 */
+    body.festival-mode .modal-header {
       border: none !important;
       background: transparent !important;
     }
 
-    /* 調整按鈕樣式以符合 Glass UI 的質感 */
-    body.festival-mode .modal-content .btn-primary {
-      border-radius: 12px;
-      background: rgba(13, 110, 253, 0.8);
-      border: none;
-      backdrop-filter: blur(5px);
-    }
-
-    body.festival-mode .modal-content .btn-outline-primary {
-      border-radius: 12px;
-      border: 1px solid rgba(13, 110, 253, 0.5);
-      color: #0d6efd !important;
-    }
-
-    /* 3. 調整文字與導覽列 */
-    body.festival-mode .navbar {
-      background: rgba(0, 0, 0, 0.2) !important;
-      border-radius: 12px;
-      border: 1px solid rgba(212, 175, 55, 0.2);
-    }
-    body.festival-mode .navbar-brand, body.festival-mode .navbar-text, body.festival-mode .form-label {
-      color: #ffd700 !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-    body.festival-mode h2 { color: #ffd700; font-weight: bold; }
-    
-    /* 修正彈窗文字顏色，確保在節慶模式下依然清晰 */
-    body.festival-mode .modal-content {
-      color: #212529 !important; /* 回復為深灰色/黑色文字 */
-    }
-    
-    body.festival-mode .modal-header .btn-close {
-      filter: none; /* 確保關閉按鈕顏色正常 */
-    }
-    
-    /* 如果你希望彈窗標題顏色明顯一點 */
     body.festival-mode .modal-title {
       color: #000 !important;
       font-weight: bold;
     }
 
-    /* 粒子畫布底層 */
+    /* 修正彈窗關閉按鈕顏色 */
+    body.festival-mode .modal-header .btn-close {
+      filter: none !important; 
+    }
+
+    /* 彈窗內容區與頁尾 */
+    body.festival-mode .modal-body {
+      color: #212529 !important;
+    }
+
+    body.festival-mode .modal-footer {
+      border: none !important;
+      background: transparent !important;
+    }
+
+    /* 4. 導覽列與表單標籤調整 */
+    body.festival-mode .navbar {
+      background: rgba(0, 0, 0, 0.2) !important;
+      border-radius: 12px;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    body.festival-mode .navbar-brand, 
+    body.festival-mode .navbar-text, 
+    body.festival-mode .form-label {
+      color: #ffd700 !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    body.festival-mode h2 { 
+      color: #ffd700; 
+      font-weight: bold; 
+    }
+
+    /* 5. 彈窗內按鈕 Glass 質感優化 */
+    body.festival-mode .modal-content .btn-primary {
+      border-radius: 12px;
+      background: rgba(13, 110, 253, 0.85) !important;
+      border: none !important;
+      backdrop-filter: blur(5px);
+    }
+
+    body.festival-mode .modal-content .btn-outline-primary {
+      border-radius: 12px;
+      border: 1px solid rgba(13, 110, 253, 0.5) !important;
+      color: #0d6efd !important;
+    }
+
+    /* 6. 粒子畫布底層 */
     #festival-canvas {
       position: fixed;
       top: 0;
@@ -100,7 +112,7 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: -1; /* 放在所有內容後方 */
+      z-index: -1;
     }
   </style>
 
