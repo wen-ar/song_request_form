@@ -7,12 +7,13 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
   <style>
-    /* 1. 全域節慶背景 */
+    /* 1. 現代節慶背景：流動漸變 */
     body.festival-mode {
-      background: linear-gradient(-45deg, #2c0000, #600000, #8a6d1d, #400000);
+      background: linear-gradient(-45deg, #4b0000, #800000, #d4af37, #600000);
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       min-height: 100vh;
+      color: #fff !important;
       transition: all 0.5s ease;
     }
 
@@ -22,41 +23,43 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* 2. 磨砂底板：覆蓋所有輸入區域，但維持原本大小 */
-    body.festival-mode .form-container-glass {
-      background: rgba(255, 255, 255, 0.15); /* 白色半透明 */
-      backdrop-filter: blur(15px); /* 磨砂模糊效果 */
-      -webkit-backdrop-filter: blur(15px);
-      border-radius: 20px;
-      padding: 30px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      display: inline-block; /* 讓寬度隨內容撐開，不佔滿全螢幕 */
-      width: 100%;
-      max-width: 600px; /* 限制最大寬度，維持原本大小 */
+    /* 2. 毛玻璃容器：讓原本的表單浮起來 */
+    body.festival-mode .container.mt-5 {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 40px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
 
-    /* 3. 粒子畫布：確保它在最底層 */
+    /* 3. 調整文字與導覽列 */
+    body.festival-mode .navbar {
+      background: rgba(0, 0, 0, 0.2) !important;
+      border-radius: 12px;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    body.festival-mode .navbar-brand, body.festival-mode .navbar-text, body.festival-mode .form-label {
+      color: #ffd700 !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    body.festival-mode h2 { color: #ffd700; font-weight: bold; }
+
+    /* 粒子畫布底層 */
     #festival-canvas {
       position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
-      z-index: -1;
-    }
-
-    /* 4. 彈窗優化：白色磨砂感，解決字體看不見問題 */
-    .modal-content {
-      background: rgba(255, 255, 255, 0.9) !important;
-      backdrop-filter: blur(10px);
-      color: #333 !important; /* 彈窗內文字改回深色，確保可讀 */
-    }
-    
-    /* 節慶模式下的標籤顏色 */
-    body.festival-mode .form-label, body.festival-mode h2 {
-      color: #ffd700 !important;
-      font-weight: bold;
+      z-index: -1; /* 放在所有內容後方 */
     }
   </style>
+
+<body class="container mt-5">
+  <canvas id="festival-canvas"></canvas>
 
   <!-- 導覽列 -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
