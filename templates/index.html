@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
   <style>
-    /* 1. 現代節慶背景：流動漸變 */
+    /* 1. 背景：動態漸變 */
     body.festival-mode {
       background: linear-gradient(-45deg, #4b0000, #800000, #d4af37, #600000);
       background-size: 400% 400%;
@@ -23,87 +23,77 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* 2. 統一的白系玻璃擬態 (White Glass UI) 核心樣式 */
-    /* 套用到：導覽列、表單容器、通知彈窗 */
-    body.festival-mode .navbar,
+    /* 2. 統一 Glass UI 底座：應用於「表單容器」與「通知彈窗」 */
     body.festival-mode .container.mt-5,
-    body.festival-mode .modal-content {
-      background: rgba(255, 255, 255, 0.6) !important; 
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.6) !important;
-      box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.2) !important;
-    }
-
-    /* 3. 表單容器專屬細節 (保持比例，不佔滿全螢幕) */
-    body.festival-mode .container.mt-5 {
-      border-radius: 24px;
-      padding: 40px;
-      /* 確保內部的文字（標籤除外）顏色清晰 */
-      color: #212529 !important;
-    }
-
-    /* 4. 導覽列專屬細節 */
+    body.festival-mode .modal-content,
     body.festival-mode .navbar {
-      border-radius: 16px;
-      margin-bottom: 2rem;
-      padding: 0.8rem 1.2rem;
+      background: rgba(255, 255, 255, 0.7) !important;
+      backdrop-filter: blur(25px) !important;
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
     }
 
-    body.festival-mode .navbar-brand {
-      color: #800000 !important; /* 深紅標題 */
-      font-weight: bold;
+    /* 3. 表單容器（點歌區）細節 */
+    body.festival-mode .container.mt-5 {
+      border-radius: 28px;
+      padding: 40px;
+      max-width: 700px; /* 限制寬度，維持美觀比例 */
+      margin-top: 2rem !important;
     }
 
+    /* 4. [極重要] 文字清晰度：強制黑色 */
+    /* 針對表單標籤、通知彈窗內容、標題等全面改為黑色 */
+    body.festival-mode .form-label, 
+    body.festival-mode .modal-body,
+    body.festival-mode .modal-body p,
+    body.festival-mode .modal-header .modal-title,
     body.festival-mode .navbar-text {
-      color: #333 !important;
+      color: #000000 !important; /* 純黑確保最高清晰度 */
+      text-shadow: none !important;
+      font-weight: 600; /* 加點粗度更好讀 */
     }
 
-    /* 5. 彈窗專屬細節 */
+    /* 5. 標題文字：使用深紅增加層次感 */
+    body.festival-mode h2,
+    body.festival-mode .navbar-brand {
+      color: #800000 !important;
+      font-weight: 800;
+      text-shadow: none !important;
+    }
+
+    /* 6. 通知彈窗細部修正 */
     body.festival-mode .modal-content {
       border-radius: 24px !important;
     }
-
     body.festival-mode .modal-header, 
     body.festival-mode .modal-footer {
       border: none !important;
     }
-
-    body.festival-mode .modal-title {
-      color: #000 !important;
-      font-weight: 800;
+    body.festival-mode .modal-header .btn-close {
+      filter: brightness(0) !important; /* 確保關閉按鈕是黑色的 */
     }
 
-    /* 6. 表單內部文字調整 */
-    /* 讓表單內的標籤 (Label) 維持金色，方便在深紅背景襯托下閱讀 */
-    body.festival-mode .form-label {
-      color: #ffd700 !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-      font-weight: 600;
+    /* 7. 輸入框與按鈕優化 */
+    body.festival-mode .form-control,
+    body.festival-mode .form-select {
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.9);
     }
 
-    /* 如果你希望表單內的 h2 標題也更有質感 */
-    body.festival-mode h2 { 
-      color: #ffd700; 
-      font-weight: bold;
-      margin-bottom: 1.5rem;
-    }
-
-    /* 7. 按鈕樣式 */
     body.festival-mode .btn-primary {
       border-radius: 12px;
-      background: rgba(13, 110, 253, 0.9) !important;
-      border: none !important;
-      padding: 10px 25px;
+      background: #0d6efd !important;
+      border: none;
+      padding: 10px 24px;
+      font-weight: bold;
     }
 
     /* 8. 粒子畫布 */
     #festival-canvas {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
       z-index: -1;
     }
