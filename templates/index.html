@@ -7,13 +7,13 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
   <style>
-    /* 1. 現代節慶背景：確保夠深，才能襯托出白色的毛玻璃 */
+    /* 1. 全域節慶背景 */
     body.festival-mode {
-      background: linear-gradient(-45deg, #2c0000, #5d0000, #8a6d1d, #380000);
+      background: linear-gradient(-45deg, #2c0000, #600000, #8a6d1d, #400000);
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       min-height: 100vh;
-      color: #ffffff !important;
+      transition: all 0.5s ease;
     }
 
     @keyframes gradientBG {
@@ -22,63 +22,39 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* 2. 主容器：輕微模糊，作為底座 */
-    body.festival-mode .container.mt-5 {
-      background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 24px;
-      padding: 40px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-    }
-
-    /* 3. 輸入框與下拉選單：白色毛玻璃效果 */
-    /* 因為背景是深色，所以我們用白色透明做模糊 */
-    body.festival-mode .form-control, 
-    body.festival-mode .form-select {
-      background: rgba(255, 255, 255, 0.15) !important; /* 白色半透明 */
-      backdrop-filter: blur(8px); /* 適度的模糊，不會太模糊 */
-      -webkit-backdrop-filter: blur(8px);
+    /* 2. 磨砂底板：覆蓋所有輸入區域，但維持原本大小 */
+    body.festival-mode .form-container-glass {
+      background: rgba(255, 255, 255, 0.15); /* 白色半透明 */
+      backdrop-filter: blur(15px); /* 磨砂模糊效果 */
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 30px;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #ffffff !important; /* 輸入文字為白色 */
-      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: inline-block; /* 讓寬度隨內容撐開，不佔滿全螢幕 */
+      width: 100%;
+      max-width: 600px; /* 限制最大寬度，維持原本大小 */
     }
 
-    /* 輸入框內的預留文字 (Placeholder) 顏色 */
-    body.festival-mode .form-control::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    /* 4. 解決通知彈窗看不見文字的問題 */
-    .modal-content {
-      background: rgba(255, 255, 255, 0.2) !important; /* 白色毛玻璃 */
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: #ffffff !important; /* 強制文字白色 */
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-
-    /* 彈窗內的標題與文字細節 */
-    .modal-header, .modal-footer { border-color: rgba(255,255,255,0.1); }
-    .modal-title { color: #ffd700 !important; font-weight: bold; }
-    #notifyBody p { color: #ffffff !important; }
-
-    /* 5. 導覽列與標籤 */
-    body.festival-mode .navbar-brand, 
-    body.festival-mode .form-label,
-    body.festival-mode h2 {
-      color: #ffd700 !important; /* 金色文字增加節慶感與閱讀度 */
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    /* 粒子畫布 */
+    /* 3. 粒子畫布：確保它在最底層 */
     #festival-canvas {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
       z-index: -1;
+    }
+
+    /* 4. 彈窗優化：白色磨砂感，解決字體看不見問題 */
+    .modal-content {
+      background: rgba(255, 255, 255, 0.9) !important;
+      backdrop-filter: blur(10px);
+      color: #333 !important; /* 彈窗內文字改回深色，確保可讀 */
+    }
+    
+    /* 節慶模式下的標籤顏色 */
+    body.festival-mode .form-label, body.festival-mode h2 {
+      color: #ffd700 !important;
+      font-weight: bold;
     }
   </style>
 
