@@ -6,7 +6,57 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body class="container mt-5">
+  <style>
+    /* 1. 全域節慶背景 */
+    body.festival-mode {
+      background: linear-gradient(-45deg, #2c0000, #600000, #8a6d1d, #400000);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      min-height: 100vh;
+      transition: all 0.5s ease;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 2. 磨砂底板：覆蓋所有輸入區域，但維持原本大小 */
+    body.festival-mode .form-container-glass {
+      background: rgba(255, 255, 255, 0.15); /* 白色半透明 */
+      backdrop-filter: blur(15px); /* 磨砂模糊效果 */
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: inline-block; /* 讓寬度隨內容撐開，不佔滿全螢幕 */
+      width: 100%;
+      max-width: 600px; /* 限制最大寬度，維持原本大小 */
+    }
+
+    /* 3. 粒子畫布：確保它在最底層 */
+    #festival-canvas {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* 4. 彈窗優化：白色磨砂感，解決字體看不見問題 */
+    .modal-content {
+      background: rgba(255, 255, 255, 0.9) !important;
+      backdrop-filter: blur(10px);
+      color: #333 !important; /* 彈窗內文字改回深色，確保可讀 */
+    }
+    
+    /* 節慶模式下的標籤顏色 */
+    body.festival-mode .form-label, body.festival-mode h2 {
+      color: #ffd700 !important;
+      font-weight: bold;
+    }
+  </style>
 
   <!-- 導覽列 -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
@@ -116,6 +166,62 @@
 
   <!-- JavaScript -->
   <script>
+    // --- [新增] 粒子動畫與節慶判斷邏輯 ---
+    function initFestivalEffect() {
+      const now = new Date();
+      // 偵測是否為 2 月 (農曆新年/情人節期間)
+      if (now.getMonth() === 1) { 
+        document.body.classList.add('festival-mode');
+        startParticles();
+      }
+    }
+
+    function startParticles() {
+      const canvas = document.getElementById('festival-canvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      class GoldenDust {
+        constructor() { this.reset(); }
+        reset() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 2 + 1;
+          this.speedY = Math.random() * 0.8 + 0.3;
+          this.speedX = Math.random() * 0.4 - 0.2;
+          this.opacity = Math.random() * 0.6 + 0.2;
+        }
+        update() {
+          this.y += this.speedY;
+          this.x += this.speedX;
+          if (this.y > canvas.height) this.y = -10;
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`;
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < 80; i++) particles.push(new GoldenDust());
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+    // --- 粒子邏輯結束 ---
+
     // 表單送出
     document.getElementById("songForm").addEventListener("submit", function(e) {
       e.preventDefault();
@@ -218,9 +324,12 @@
       new bootstrap.Modal(document.getElementById('notifyModal')).show();
     }
 
-    // 頁面載入時 → 顯示通知 & 系統狀態
+    // 頁面載入時
     window.onload = () => {
-      // 先顯示通知
+      // 1. 初始化節慶效果
+      initFestivalEffect();
+
+      // 2. 先顯示通知
       fetch("/config")
         .then(res => res.json())
         .then(config => {
@@ -230,7 +339,7 @@
           console.error("讀取 config 錯誤：", err);
         });
       
-      // 再顯示系統狀態
+      // 3. 再顯示系統狀態
       fetch("/status")
         .then(res => res.json())
         .then(data => {
@@ -257,5 +366,3 @@
         });
     };
   </script>
-</body>
-</html>
