@@ -114,6 +114,30 @@
       pointer-events: none;
       z-index: -1;
     }
+
+     /* --- [新增] 節慶標題與按鈕文字切換 --- */
+    .festival-title {
+      transition: all 0.5s;
+    }
+    body.festival-mode .festival-title {
+      color: #ffd700 !important;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 15px #ff4d4d;
+      font-weight: 900;
+    }
+
+    /* 讓按鈕在節慶模式下切換成開運文字 */
+    body.festival-mode .btn-primary .normal-text { display: none; }
+    body.festival-mode .btn-primary .festival-text { display: inline; }
+
+    /* 讓背景畫布的 Emoji 帶點光暈 */
+    #festival-canvas {
+      filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
+    }
+
+    @media (max-width: 576px) {
+      .emoji-decor { font-size: 0.8em; }
+    }
+
   </style>
 
 <body class="container mt-5">
@@ -138,7 +162,12 @@
     </div>
   </nav>
 
-  <h2 class="mb-4">線上點歌</h2>
+  <h2 class="mb-4 text-center festival-title">
+    <span class="emoji-decor">🧨</span> 
+    新春點歌 ‧ 大吉大利 
+    <span class="emoji-decor">🧧</span>
+  </h2>
+
   <!-- 狀態顯示區塊 -->
   <div id="statusBox" class="mb-3"></div>
   <form id="songForm">
@@ -168,7 +197,10 @@
       <input type="url" class="form-control" id="songLink" name="songLink" required placeholder="https://open.spotify.com/...">
     </div>
 
-    <button type="submit" class="btn btn-primary">送出</button>
+    <button type="submit" class="btn btn-primary w-100 py-2">
+      <span class="normal-text">送出回應</span>
+      <span class="festival-text d-none">🧧 開運送出 🧧</span>
+    </button>
   </form>
 
   <!-- 回應送出成功的 Modal -->
@@ -249,30 +281,42 @@
       window.addEventListener('resize', resize);
       resize();
 
-      class GoldenDust {
-        constructor() { this.reset(); }
+      // 定義 Emoji 類別
+      class FestivalEmoji {
+        constructor() {
+          this.emojis = ['🧧', '🍊', '🧨', '💰', '✨', '🏮']; // 過年貼圖池
+          this.reset();
+        }
         reset() {
           this.x = Math.random() * canvas.width;
-          this.y = Math.random() * canvas.height;
-          this.size = Math.random() * 2 + 1;
-          this.speedY = Math.random() * 0.8 + 0.3;
-          this.speedX = Math.random() * 0.4 - 0.2;
-          this.opacity = Math.random() * 0.6 + 0.2;
+          this.y = Math.random() * -canvas.height;
+          this.emoji = this.emojis[Math.floor(Math.random() * this.emojis.length)];
+          this.fontSize = Math.random() * 20 + 10; // 大小 10px 到 30px
+          this.speedY = Math.random() * 1.5 + 0.8; // 下墜速度
+          this.speedX = Math.random() * 1 - 0.5;   // 左右飄移
+          this.opacity = Math.random() * 0.5 + 0.5; // 透明度
+          this.rotation = Math.random() * 360;      // 初始旋轉角度
+          this.rotationSpeed = Math.random() * 2 - 1; // 旋轉速度
         }
         update() {
           this.y += this.speedY;
           this.x += this.speedX;
-          if (this.y > canvas.height) this.y = -10;
+          this.rotation += this.rotationSpeed;
+          if (this.y > canvas.height) this.reset();
         }
         draw() {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`;
-          ctx.fill();
+          ctx.save();
+          ctx.globalAlpha = this.opacity;
+          ctx.font = `${this.fontSize}px serif`;
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation * Math.PI / 180);
+          ctx.fillText(this.emoji, 0, 0);
+          ctx.restore();
         }
       }
 
-      for (let i = 0; i < 80; i++) particles.push(new GoldenDust());
+      // 生成 50 個漂浮物
+      for (let i = 0; i < 50; i++) particles.push(new FestivalEmoji());
 
       function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -281,6 +325,7 @@
       }
       animate();
     }
+
     // --- 粒子邏輯結束 ---
 
     // 表單送出
