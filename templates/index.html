@@ -115,7 +115,7 @@
       z-index: -1;
     }
 
-     /* --- [新增] 節慶標題與按鈕文字切換 --- */
+    /* --- [修正] 節慶標題與按鈕文字切換 --- */
     .festival-title {
       transition: all 0.5s;
     }
@@ -125,11 +125,21 @@
       font-weight: 900;
     }
 
-    /* 讓按鈕在節慶模式下切換成開運文字 */
-    body.festival-mode .btn-primary .normal-text { display: none; }
-    body.festival-mode .btn-primary .festival-text { display: inline; }
+    /* 預設隱藏節慶文字 */
+    .festival-text { display: none; }
+    
+    /* 節慶模式下的按鈕樣式與文字切換 */
+    body.festival-mode .btn-primary {
+      background: linear-gradient(135deg, #d40000 0%, #8b0000 100%) !important;
+      border: 1px solid #ffd700 !important;
+      min-height: 50px; /* 確保按鈕不會縮小 */
+      font-weight: bold;
+    }
 
-    /* 讓背景畫布的 Emoji 帶點光暈 */
+    body.festival-mode .btn-primary .normal-text { display: none !important; }
+    body.festival-mode .btn-primary .festival-text { display: inline-block !important; }
+
+    /* 背景畫布的 Emoji 效果 */
     #festival-canvas {
       filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
     }
@@ -199,7 +209,7 @@
 
     <button type="submit" class="btn btn-primary w-100 py-2">
       <span class="normal-text">送出回應</span>
-      <span class="festival-text d-none">🧧 開運送出 🧧</span>
+      <span class="festival-text">🧧 開運送出 🧧</span>
     </button>
   </form>
 
