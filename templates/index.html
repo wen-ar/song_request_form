@@ -1,0 +1,497 @@
+ <!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>線上點歌表單</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+  <style>
+    /* 1. 現代節慶背景：流動漸變 */
+    body.festival-mode {
+      background: linear-gradient(-45deg, #7bd389, #c7f9cc, #fce1e4, #ffd6e0);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      min-height: 100vh;
+      color: #fff !important;
+      transition: all 0.5s ease;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 2. 主容器毛玻璃效果 */
+    body.festival-mode .container.mt-5 {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 40px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 3. 白系玻璃擬態 (White Glass UI) - 應用於彈窗與導覽列 */
+    
+    /* 通用玻璃類別：你可以把這個樣式同時給彈窗跟導覽列 */
+    body.festival-mode .modal-content,
+    body.festival-mode .navbar {
+      background: rgba(255, 255, 255, 0.55) !important; 
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* 彈窗專屬調整 */
+    body.festival-mode .modal-content {
+      border-radius: 24px !important;
+      color: #212529 !important;
+    }
+
+    body.festival-mode .modal-header, 
+    body.festival-mode .modal-footer {
+      border: none !important;
+      background: transparent !important;
+    }
+
+    body.festival-mode .modal-title {
+      color: #000 !important;
+      font-weight: 800;
+    }
+
+    body.festival-mode .modal-header .btn-close {
+      filter: none !important; 
+    }
+
+    /* 4. 導覽列（Navbar）專屬調整 */
+    body.festival-mode .navbar {
+      border-radius: 16px; /* 導覽列圓角稍微收斂一點點 */
+      margin-bottom: 2rem;
+      padding: 0.8rem 1.2rem;
+    }
+
+    /* 調整導覽列文字顏色，使其在白色玻璃上清晰可見 */
+    body.festival-mode .navbar-brand {
+      color: #2e7d32 !important;
+      font-weight: bold;
+      text-shadow: none;
+    }
+
+    body.festival-mode .navbar-text {
+      color: #333 !important;
+      text-shadow: none;
+    }
+
+    /* 5. 表單標籤與標題 */
+    body.festival-mode .form-label {
+      color: #ec407a !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.25);
+    }
+
+    body.festival-mode h2 { 
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    /* 6. 按鈕樣式優化 */
+    body.festival-mode .btn-primary {
+      border-radius: 12px;
+      background: rgba(13, 110, 253, 0.9) !important;
+      border: none !important;
+    }
+
+    /* 7. 粒子畫布 */
+    #festival-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* --- [修正] 節慶標題與按鈕文字切換 --- */
+    .festival-title {
+      transition: all 0.5s;
+    }
+    body.festival-mode .festival-title {
+      color: #ffd700 !important;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 15px #ff4d4d;
+      font-weight: 900;
+    }
+
+    /* 預設隱藏節慶文字 */
+    .festival-text { display: none; }
+    
+    /* 節慶模式下的按鈕樣式與文字切換 */
+    body.festival-mode .btn-primary {
+      border-radius: 12px;
+      background: linear-gradient(135deg, #66bb6a 0%, #ec407a 100%) !important;
+      border: none !important;
+      min-height: 50px;
+      font-weight: bold;
+    }
+
+    body.festival-mode .btn-primary .normal-text { display: none !important; }
+    body.festival-mode .btn-primary .festival-text { display: inline-block !important; }
+
+    /* 背景畫布的 Emoji 效果 */
+    #festival-canvas {
+      filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
+    }
+
+    @media (max-width: 576px) {
+      .emoji-decor { font-size: 0.8em; }
+    }
+
+  </style>
+
+<body class="container mt-5">
+  <canvas id="festival-canvas"></canvas>
+
+  <!-- 導覽列 -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('index') }}">線上點歌表單</a>
+      <div class="d-flex">
+        {% if session.get("user") %}
+          <span class="navbar-text me-2">目前登入：{{ session["user"].get("email") }}</span>
+          <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm">登出</a>
+        {% else %}
+          <!-- 未登入時只顯示「登入」按鈕，點擊後跳出選擇彈窗 -->
+          <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
+        {% endif %}
+        {% if session.get("user") and session["user"]["email"] in ADMIN_EMAILS %}
+          <a href="{{ url_for('admin_page') }}" class="btn btn-warning btn-sm">管理頁面</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <h2 class="mb-4 text-center festival-title">
+    <span class="emoji-decor">🌱</span>
+    春日點歌季 ‧ 音樂發芽中
+    <span class="emoji-decor">🌸</span>
+  </h2>
+
+  <!-- 狀態顯示區塊 -->
+  <div id="statusBox" class="mb-3"></div>
+  <form id="songForm">
+    <div class="mb-3">
+      <label for="name" class="form-label">姓名</label>
+      <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="gender" class="form-label">性別</label>
+      <select class="form-select" id="gender" name="gender" required>
+        <option value="">請選擇</option>
+        <option value="男">男</option>
+        <option value="女">女</option>
+      </select>
+    </div>
+
+    <!-- 歌曲名稱 + 建議清單 -->
+    <div class="mb-3 position-relative">
+      <label for="songName" class="form-label">歌曲名稱</label>
+      <input type="text" class="form-control" id="songName" name="songName" required aria-autocomplete="list" aria-controls="songSuggestions">
+      <div id="songSuggestions" class="list-group position-absolute w-100" style="z-index:1000;" role="listbox"></div>
+    </div>
+
+    <div class="mb-3">
+      <label for="songLink" class="form-label">Spotify 連結</label>
+      <input type="url" class="form-control" id="songLink" name="songLink" required placeholder="https://open.spotify.com/...">
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100 py-2">
+      <span class="normal-text">送出回應</span>
+      <span class="festival-text">🌸 春日送出 🌸</span>
+    </button>
+  </form>
+
+  <!-- 回應送出成功的 Modal -->
+  <div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="modal-header justify-content-center">
+          <h5 class="modal-title" id="submitModalLabel">✅ 您的回應已送出</h5>
+        </div>
+        <div class="modal-body">
+          <p>將會整理請求及排列歌曲</p>
+          <button class="btn btn-primary" onclick="location.reload()">提交其他回應</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通知彈窗 -->
+  <div class="modal fade" id="notifyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">通知</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="notifyBody" style="white-space: pre-line;">
+          {% if not session.get("user") %}
+            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          {% if session.get("user") %}
+            <span class="me-2 text-success">您已登入：{{ session["user"]["email"] }}</span>
+          {% endif %}
+          <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">我知道了</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 登入選擇彈窗 -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">選擇登入方式</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <a href="{{ url_for('login_microsoft') }}" class="btn btn-primary w-100 mb-2">使用 Microsoft 登入</a>
+          <a href="{{ url_for('login_google') }}" class="btn btn-danger w-100 mb-2">使用 Google 登入</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // --- [新增] 粒子動畫與節慶判斷邏輯 ---
+    function initFestivalEffect() {
+      const now = new Date();
+      // 偵測是否為 2 月 (農曆新年/情人節期間)
+      if (now.getMonth() === 1) { 
+        document.body.classList.add('festival-mode');
+        startParticles();
+      }
+    }
+
+    function startParticles() {
+      const canvas = document.getElementById('festival-canvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      // 定義 Emoji 類別
+      class FestivalEmoji {
+        constructor() {
+          this.emojis = ['🌸','🌱','🍀','🎵','✨','🌼'];
+          this.reset();
+        }
+        reset() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * -canvas.height;
+          this.emoji = this.emojis[Math.floor(Math.random() * this.emojis.length)];
+          this.fontSize = Math.random() * 20 + 10; // 大小 10px 到 30px
+          this.speedY = Math.random() * 1.5 + 0.8; // 下墜速度
+          this.speedX = Math.random() * 1 - 0.5;   // 左右飄移
+          this.opacity = Math.random() * 0.5 + 0.5; // 透明度
+          this.rotation = Math.random() * 360;      // 初始旋轉角度
+          this.rotationSpeed = Math.random() * 2 - 1; // 旋轉速度
+        }
+        update() {
+          this.y += this.speedY;
+          this.x += this.speedX;
+          this.rotation += this.rotationSpeed;
+          if (this.y > canvas.height) this.reset();
+        }
+        draw() {
+          ctx.save();
+          ctx.globalAlpha = this.opacity;
+          ctx.font = `${this.fontSize}px serif`;
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation * Math.PI / 180);
+          ctx.fillText(this.emoji, 0, 0);
+          ctx.restore();
+        }
+      }
+
+      // 生成 50 個漂浮物
+      for (let i = 0; i < 50; i++) particles.push(new FestivalEmoji());
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    // --- 粒子邏輯結束 ---
+
+    // 表單送出
+    document.getElementById("songForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById("name").value,
+        gender: document.getElementById("gender").value,
+        songName: document.getElementById("songName").value,
+        songLink: document.getElementById("songLink").value
+      };
+      fetch("/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const modal = new bootstrap.Modal(document.getElementById("submitModal"));
+          modal.show();
+          document.getElementById("songSuggestions").innerHTML = "";
+          document.getElementById("songForm").reset();
+        } else {
+          alert("送出失敗：" + data.error);
+        }
+      })
+      .catch(err => {
+        console.error("提交失敗：", err);
+        alert("送出發生錯誤，請稍後再試。");
+      });
+    });
+
+    // 即時 Spotify 搜尋建議
+    document.getElementById("songName").addEventListener("input", function() {
+      const query = this.value.trim();
+      const box = document.getElementById("songSuggestions");
+      if (!query) {
+        box.innerHTML = "";
+        return;
+      }
+      fetch(`/search?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          box.innerHTML = "";
+          data.forEach((item, idx) => {
+            const a = document.createElement("a");
+            a.className = "list-group-item list-group-item-action";
+            a.setAttribute("role", "option");
+            a.setAttribute("id", "suggestion-" + idx);
+            a.innerHTML = `<strong>${item.name}</strong> - ${item.artist}`;
+            a.href = "#";
+            a.onclick = (e) => {
+              e.preventDefault();
+              document.getElementById("songName").value = item.name;
+              document.getElementById("songLink").value = item.url;
+              box.innerHTML = "";
+            };
+            box.appendChild(a);
+          });
+        })
+        .catch(err => {
+          console.error("搜尋建議錯誤：", err);
+        });
+    });
+
+    // 通知顯示
+    function showNotification(config) {
+      const deadline = config.deadline || "";
+      const notifyContent = config.notification_content || "";
+      const version = config.version || "1.0.0";
+
+      let deadlineText = "";
+      if (deadline && deadline.includes(" ")) {
+        const [date, time] = deadline.split(" ");
+        deadlineText = `回應收集到：${date} ${time}`;
+      } else if (deadline) {
+        deadlineText = `回應收集到：${deadline}`;
+      }
+
+      let loginText = "";
+      {% if session.get("user") %}
+        loginText = "您已登入：" + "{{ session['user']['email'] }}";
+      {% endif %}
+      
+      const body = `
+        <p>${notifyContent}</p>
+        <p>${deadlineText}</p>
+        <p>版本號 ${version}</p>
+        <div class="mt-3">
+          <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
+        </div>
+      `;
+      document.getElementById("notifyBody").innerHTML = body;
+
+      try {
+        localStorage.setItem("notifyVersion", version);
+      } catch (e) {
+        console.warn("無法寫入 localStorage:", e);
+      }
+
+      new bootstrap.Modal(document.getElementById('notifyModal')).show();
+    }
+
+    // 頁面載入時
+    window.onload = () => {
+      // 1. 初始化節慶效果
+      initFestivalEffect();
+
+      // 2. 先顯示通知
+      fetch("/config")
+        .then(res => res.json())
+        .then(config => {
+          showNotification(config);
+        })
+        .catch(err => {
+          console.error("讀取 config 錯誤：", err);
+        });
+      
+      // 3. 再顯示系統狀態
+      fetch("/status")
+        .then(res => res.json())
+        .then(data => {
+          const box = document.getElementById("statusBox");
+          let html = "";
+
+          if (!data.accept_responses) {
+            html = `<div class="alert alert-danger"><h3>目前不接受回應</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } else if (data.deadline && new Date() > new Date(data.deadline)) {
+            html = `<div class="alert alert-warning"><h3>已超過截止時間</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } else if (data.remaining !== null && data.remaining <= 0) {
+            html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } else if (data.remaining !== null) {
+            html = `<div class="alert alert-info"><p>你還可以再點 ${data.remaining} 首歌</p></div>`;
+          }
+
+          box.innerHTML = html;
+        })
+        .catch(err => {
+          console.error("讀取 status 錯誤：", err);
+        });
+    };
+  </script>
+  };
+  </script>
+});
+    };
+  </script>
+s 錯誤：", err);
+        });
+    };
+  </script>
+
+    };
+  </script>
