@@ -458,6 +458,7 @@
             html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
             document.getElementById("songForm").style.display = "none";
           } else if (data.remaining !== null) {
+            // 修正這裡的變數語法
             html = `<div class="alert alert-info"><p>你還可以再點 ${data.remaining} 首歌</p></div>`;
           }
 
