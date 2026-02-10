@@ -26,8 +26,8 @@
     /* 2. 主容器毛玻璃效果 */
     body.festival-mode .container.mt-5 {
       background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-radius: 24px;
       padding: 40px;
       border: 1px solid rgba(212, 175, 55, 0.3);
@@ -39,7 +39,7 @@
     /* 通用玻璃類別：你可以把這個樣式同時給彈窗跟導覽列 */
     body.festival-mode .modal-content,
     body.festival-mode .navbar {
-      background: rgba(255, 255, 255, 0.55) !important; 
+      background: rgba(255, 255, 255, 0.50) !important; 
       backdrop-filter: blur(20px) !important;
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.6) !important;
@@ -136,6 +136,28 @@
       min-height: 50px;
       font-weight: bold;
     }
+      
+    /* 固定登入、登出與管理按鈕的大小 */
+    .nav-btn-custom {
+      min-width: 90px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+    /* 撥動開關的標籤顏色調整 */
+    .form-check-label {
+      transition: color 0.5s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    body.festival-mode #switchLabel {
+      color: #000 !important;
+      font-weight: bold;
+    }
 
     body.festival-mode .btn-primary .normal-text { display: none !important; }
     body.festival-mode .btn-primary .festival-text { display: inline-block !important; }
@@ -157,22 +179,51 @@
   <!-- 導覽列 -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('index') }}">線上點歌表單</a>
-      <div class="d-flex">
-        {% if session.get("user") %}
-          <span class="navbar-text me-2">目前登入：{{ session["user"].get("email") }}</span>
-          <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm">登出</a>
-        {% else %}
-          <!-- 未登入時只顯示「登入」按鈕，點擊後跳出選擇彈窗 -->
-          <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
-        {% endif %}
-        {% if session.get("user") and session["user"]["email"] in ADMIN_EMAILS %}
-          <a href="{{ url_for('admin_page') }}" class="btn btn-warning btn-sm">管理頁面</a>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
 
+      <a class="navbar-brand" href="{{ url_for('index') }}">
+        線上點歌表單
+      </a>
+
+      <div class="d-flex align-items-center gap-2">
+
+        <!-- 節慶模式開關 -->
+        <div class="form-check form-switch me-2">
+          <input class="form-check-input" type="checkbox" id="festivalSwitch">
+          <label class="form-check-label small" for="festivalSwitch">
+            節慶模式
+          </label>
+        </div>
+
+        {% if session.get("user") %}
+          <span class="navbar-text me-2">
+            目前登入：{{ session["user"].get("email") }}
+          </span>
+
+          <a href="{{ url_for('logout') }}"
+             class="btn btn-outline-secondary btn-sm nav-btn-custom">
+             登出
+          </a>
+        {% else %}
+          <a href="#"
+             class="btn btn-primary btn-sm nav-btn-custom"
+             data-bs-toggle="modal"
+             data-bs-target="#loginModal">
+             登入
+          </a>
+        {% endif %}
+
+        {% if session.get("user") and session["user"]["email"] in ADMIN_EMAILS %}
+          <a href="{{ url_for('admin_page') }}"
+             class="btn btn-warning btn-sm nav-btn-custom">
+             管理
+          </a>
+        {% endif %}
+
+    </div>
+
+  </div>
+</nav>
+ 
   <h2 class="mb-4 text-center festival-title">
     <span class="emoji-decor">🌱</span>
     春日點歌季 ‧ 音樂發芽中
@@ -270,15 +321,49 @@
 
   <!-- JavaScript -->
   <script>
-    // --- [新增] 粒子動畫與節慶判斷邏輯 ---
+    // --- [更新] 粒子動畫與主題開關邏輯 ---
+    const festivalSwitch = document.getElementById('festivalSwitch');
+
     function initFestivalEffect() {
       const now = new Date();
-      // 偵測是否為 2 月 (農曆新年/情人節期間)
-      if (now.getMonth() === 1) { 
-        document.body.classList.add('festival-mode');
-        startParticles();
-      }
+      const isFebruary = now.getMonth() === 1;
+      
+      // 讀取瀏覽器儲存的偏好 (localStorage)
+      const savedPref = localStorage.getItem('festivalEnabled');
+      
+      // 決定規則：如果有存過設定就用設定，沒存過就看月份 (預設開啟)
+      const shouldEnable = (savedPref === null) ? isFebruary : (savedPref === 'true');
+
+      // 設定開關按鈕狀態
+      festivalSwitch.checked = shouldEnable;
+      
+      // 執行切換模式
+      applyFestivalMode(shouldEnable);
     }
+
+    function applyFestivalMode(enable) {
+      if (enable) {
+        document.body.classList.add('festival-mode');
+        document.getElementById('festival-canvas').style.display = 'block';
+        startParticles(); // 啟動粒子動畫
+      } else {
+        document.body.classList.remove('festival-mode');
+        document.getElementById('festival-canvas').style.display = 'none';
+      }
+      // 將使用者的選擇存入 localStorage
+      localStorage.setItem('festivalEnabled', enable);
+    }
+
+    // 監聽開關撥動動作
+    festivalSwitch.addEventListener('change', (e) => {
+      const isEnabled = e.target.checked;
+      applyFestivalMode(isEnabled);
+      
+      // 如果使用者開啟主題，重新整理頁面以確保 Canvas 粒子動畫乾淨初始化
+      if (isEnabled) {
+        location.reload();
+      }
+    });
 
     function startParticles() {
       const canvas = document.getElementById('festival-canvas');
