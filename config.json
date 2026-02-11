@@ -1,8 +1,30 @@
 {
   "accept_responses": true,
-  "deadline": "2026-02-05 00:00:00",
-  "notification_content": "🎵 本次點歌活動開始囉！",
-  "version": "beta version 1.3.0",
+  "deadline": "2026-02-28 00:00:00",
+  "notification_content": "規則及說明如下：
+
+每人可重複點歌。
+
+現場點歌限當日點歌。
+
+播放時間只到 12:15。
+
+以線上點歌優先，但歌單會以隨機播放模式。
+
+將創建臨時音樂庫，每天從裡面抽取歌曲（依照性別）。
+
+多餘歌曲將併列到下週音樂庫中重新抽取。
+
+操作提醒：
+
+👉 建議使用者登入帳號後再進行操作，以確保資料正確保存。
+
+✅ 若您已登入並看到「您已登入」提示，則無需再次按下登入按鈕。
+
+🎵 點歌限制：男生最多可點 __ 首歌，女生最多可點 __ 首歌。
+
+感謝您的配合與測試！",
+  "version": "beta version 1.3.5",
   "male_limit_enabled": false,
   "male_limit_count": 0,
   "female_limit_enabled": false,
