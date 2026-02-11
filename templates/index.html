@@ -76,7 +76,7 @@
     .navbar-brand {
       color: #2e7d32 !important;
       font-weight: 800 !important;
-      font-size: 1.25rem !important;
+      font-size: 1.75rem !important;
       text-shadow: none;
     }
 
@@ -158,6 +158,19 @@
       user-select: none;
     }
 
+    /* 系統狀態文字：加粗並優化視覺 */
+    #statusBox {
+      font-weight: bold !important;
+      text-align: center;
+    }
+
+    #statusBox .alert {
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.65); /* 半透明背景 */
+      backdrop-filter: blur(5px);
+      font-weight: 800 !important; /* 強制特粗 */
+    }
+ 
     body.festival-mode .btn-primary .normal-text { display: none !important; }
     body.festival-mode .btn-primary .festival-text { display: inline-block !important; }
 
@@ -168,7 +181,7 @@
 
     /* 8. 行動裝置微調 */
     @media (max-width: 576px) {
-      .navbar-brand { font-size: 1.15rem !important; }
+      .navbar-brand { font-size: 1.3rem !important; }
       .nav-btn-custom { min-width: 80px; font-size: 0.95rem !important; }
       .emoji-decor { font-size: 0.8em; }
     }
