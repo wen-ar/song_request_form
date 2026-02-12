@@ -33,28 +33,78 @@
       margin-bottom: 5px;
       border: 1px solid #eee;
     }
+
+    /* 手機導覽列優化 */
+    @media (max-width: 991px) {
+
+      .navbar-brand {
+        font-size: 1.1rem !important;
+      }
+
+      .navbar-text {
+        display: block;
+        margin-top: 10px;
+        opacity: 0.9;
+      }
+
+      .navbar .btn {
+        font-size: 0.95rem;
+        padding: 8px 12px;
+      }
+    }
+
   </style>
 
-<body class="container mt-5">
+  <body class="container" style="padding-top:90px;">
 
   <!-- 導覽列 -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('index') }}">線上點歌表單</a>
-      <div class="collapse navbar-collapse">
-        <ul class="navbar-nav ms-auto">
+
+      <!-- 左側標題 -->
+      <a class="navbar-brand fs-4 fw-bold" href="{{ url_for('index') }}">
+        🎵 線上點歌表單（管理）
+      </a>
+
+      <!-- 手機版漢堡按鈕 -->
+      <button class="navbar-toggler" type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#adminNavbar"
+              aria-controls="adminNavbar"
+              aria-expanded="false"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- 可收合區 -->
+      <div class="collapse navbar-collapse" id="adminNavbar">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+
           {% if session.get("user") %}
-            <li class="nav-item">
-              <span class="navbar-text me-3 text-white">
-                管理員：{{ session["user"]["email"] }}
-              </span>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm me-2">回首頁</a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">登出</a>
-            </li>
+
+          <!-- 管理員資訊 -->
+          <li class="nav-item">
+            <span class="navbar-text text-white small text-lg-normal me-lg-3">
+              👤 {{ session["user"]["email"] }}
+            </span>
+          </li>
+
+          <!-- 回首頁 -->
+          <li class="nav-item">
+            <a href="{{ url_for('index') }}"
+               class="btn btn-outline-light btn-sm w-100 w-lg-auto mt-2 mt-lg-0">
+              回首頁
+            </a>
+          </li>
+
+          <!-- 登出 -->
+          <li class="nav-item">
+            <a href="{{ url_for('logout') }}"
+               class="btn btn-danger btn-sm w-100 w-lg-auto mt-2 mt-lg-0">
+              登出
+            </a>
+          </li>
+
           {% endif %}
         </ul>
       </div>
