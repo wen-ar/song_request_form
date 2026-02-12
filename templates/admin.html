@@ -9,12 +9,12 @@
     <style>
     /* 毛玻璃導覽列 — 穩定可見版 */
     .blur-navbar {
-      background: rgba(0, 0, 0, 0.75);   /* ← 透明度提高 */
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      background: rgba(15, 15, 18, 0.82);   /* ← 透明度提高 */
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
 
-      border-bottom: 1px solid rgba(255,255,255,0.18);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.35);
     }
 
     /* 讓文字更清楚 */
@@ -69,7 +69,7 @@
   <body class="container" style="padding-top:90px;">
 
   <!-- 導覽列 -->
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <nav class="navbar navbar-expand-lg navbar-dark blur-navbar fixed-top">
     <div class="container-fluid">
 
       <!-- 左側標題 -->
