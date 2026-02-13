@@ -218,7 +218,7 @@ def submit():
             if datetime.now() > deadline_dt:
                 return jsonify({"error": "已超過截止日期"}), 403
         except Exception:
-            pass  # 如果格式錯誤就忽略
+            pass
 
     # 取得前端送來的資料
     data = request.json
@@ -230,26 +230,27 @@ def submit():
     if not all([name, gender, song, link]):
         return jsonify({"error": "欄位不可為空"}), 400
 
-    # 從 session 取 email，如果沒有登入就存 None
-    email = session["user"]["email"] if session.get("user") else None
+    # 判斷使用者身份：登入優先，否則用姓名
+    if session.get("user"):
+        email = session["user"].get("email")
+        cur_query = ("SELECT COUNT(*) FROM songs WHERE email = ? AND gender = ?", (email, gender))
+    else:
+        cur_query = ("SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?", (name, gender))
 
-    # 如果登入過，且 session 裡沒有性別，就補上
-    if session.get("user") and "gender" not in session["user"]:
-        session["user"]["gender"] = gender
-
-    # 檢查性別限制（依性別計算，而不是 email）
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM songs WHERE gender = ?", (gender,))
+    cur.execute(*cur_query)
     count = cur.fetchone()[0]
     conn.close()
 
+    # 性別限制判斷
     if gender == "男" and config.get("male_limit_enabled") and count >= config.get("male_limit_count", 0):
-        return jsonify({"error": "男生已達點歌上限"}), 403
+        return jsonify({"error": "你已達男生點歌上限"}), 403
     if gender == "女" and config.get("female_limit_enabled") and count >= config.get("female_limit_count", 0):
-        return jsonify({"error": "女生已達點歌上限"}), 403
+        return jsonify({"error": "你已達女生點歌上限"}), 403
 
     # --- 寫入資料庫 ---
+    email = session["user"]["email"] if session.get("user") else None
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
     cur.execute(
@@ -269,7 +270,6 @@ def status():
     config = load_config()
     now = datetime.now()
 
-    # 預設狀態
     status = {
         "accept_responses": config.get("accept_responses", True),
         "deadline": config.get("deadline"),
@@ -297,30 +297,38 @@ def status():
         except Exception:
             pass
 
-    # 檢查使用者登入與限制
+    # 判斷使用者身份：登入優先，否則用姓名
     if session.get("user"):
+        email = session["user"].get("email")
         gender = session["user"].get("gender")
-        conn = sqlite3.connect("database.db")
-        cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) FROM songs WHERE gender = ?", (gender,))
-        count = cur.fetchone()[0]
-        conn.close()
-
-        status["current_count"] = count
-
-        # 判斷性別限制
-        if gender == "男" and status["male_limit_enabled"]:
-            status["remaining"] = max(0, status["male_limit_count"] - count)
-        elif gender == "女" and status["female_limit_enabled"]:
-            status["remaining"] = max(0, status["female_limit_count"] - count)
-
-        if status["remaining"] is not None:
-            if status["remaining"] <= 0:
-                status["message"] = "已達點歌上限"
-            else:
-                status["message"] = f"你還可以再點 {status['remaining']} 首歌"
+        cur_query = ("SELECT COUNT(*) FROM songs WHERE email = ? AND gender = ?", (email, gender))
     else:
-        status["message"] = "尚未登入，請先登入才能點歌"
+        # 如果沒登入，可以從前端傳入暫存姓名與性別
+        name = session.get("temp_name")
+        gender = session.get("temp_gender")
+        cur_query = ("SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?", (name, gender))
+
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+    cur.execute(*cur_query)
+    count = cur.fetchone()[0]
+    conn.close()
+
+    status["current_count"] = count
+
+    # 性別限制判斷
+    if gender == "男" and status["male_limit_enabled"]:
+        status["remaining"] = max(0, status["male_limit_count"] - count)
+    elif gender == "女" and status["female_limit_enabled"]:
+        status["remaining"] = max(0, status["female_limit_count"] - count)
+
+    if status["remaining"] is not None:
+        if status["remaining"] <= 0:
+            status["message"] = "已達點歌上限"
+        else:
+            status["message"] = f"你還可以再點 {status['remaining']} 首歌"
+    else:
+        status["message"] = "尚未登入或未提供姓名，請先登入或輸入姓名才能點歌"
 
     return jsonify(status)
     
