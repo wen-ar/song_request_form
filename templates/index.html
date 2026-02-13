@@ -520,32 +520,32 @@
         });
       
        // 3. 再顯示系統狀態
-        // 修改點：手動抓取頁面上的姓名與性別傳入 API，解決 Session 資訊不足的問題
-        const currentGender = document.getElementById("gender").value;
-        const currentName = document.getElementById("name").value;
+       // 修改點：手動抓取頁面上的姓名與性別傳入 API，解決 Session 資訊不足的問題
+       const currentGender = document.getElementById("gender").value;
+       const currentName = document.getElementById("name").value;
 
-        fetch(`/status?gender=${encodeURIComponent(currentGender)}&name=${encodeURIComponent(currentName)}`)
-          .then(res => res.json())
-          .then(data => {
-            const box = document.getElementById("statusBox");
-            let html = "";
+       fetch(`/status?gender=${encodeURIComponent(currentGender)}&name=${encodeURIComponent(currentName)}`)
+         .then(res => res.json())
+         .then(data => {
+           const box = document.getElementById("statusBox");
+           let html = "";
 
-            if (!data.accept_responses) {
-              html = `<div class="alert alert-danger"><h3>目前不接受回應</h3></div>`;
-              document.getElementById("songForm").style.display = "none";
-            } else if (data.deadline && new Date() > new Date(data.deadline)) {
-              html = `<div class="alert alert-warning"><h3>已超過截止時間</h3></div>`;
-              document.getElementById("songForm").style.display = "none";
-          } else if (data.remaining !== null && data.remaining <= 0) {
-              // 這裡維持你原有的顯示文字
-              html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
-              document.getElementById("songForm").style.display = "none";
-            } else if (data.remaining !== null) {
-              // 這裡維持你原有的顯示文字
-              html = `<div class="alert alert-info"><p>你還可以再點 ${data.remaining} 首歌</p></div>`;
+           if (!data.accept_responses) {
+             html = `<div class="alert alert-danger"><h3>目前不接受回應</h3></div>`;
+             document.getElementById("songForm").style.display = "none";
+           } else if (data.deadline && new Date() > new Date(data.deadline)) {
+             html = `<div class="alert alert-warning"><h3>已超過截止時間</h3></div>`;
+             document.getElementById("songForm").style.display = "none";
+           } else if (data.remaining !== null && data.remaining <= 0) {
+             // 這裡維持你原有的顯示文字
+             html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
+             document.getElementById("songForm").style.display = "none";
+           } else if (data.remaining !== null) {
+             // 這裡維持你原有的顯示文字
+             html = `<div class="alert alert-info"><p>你還可以再點 ${data.remaining} 首歌</p></div>`;
            }
-            box.innerHTML = html;
-          });
+           box.innerHTML = html;
+        })
         .catch(err => {
           console.error("讀取 status 錯誤：", err);
         });
