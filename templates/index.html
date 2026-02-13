@@ -537,10 +537,7 @@
             document.getElementById("songForm").style.display = "none";
           } else if (data.remaining !== null) {
             html = `<div class="alert alert-info"><p>你還可以再點 ${data.remaining} 首歌</p></div>`;
-          } else {
-            html = `<div class="alert alert-secondary"><p>${data.message}</p></div>`;
           }
-
 
           box.innerHTML = html;
         })
