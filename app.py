@@ -267,8 +267,12 @@ def submit():
 # ======================
 @app.route("/status")
 def status():
+
     config = load_config()
     now = datetime.now()
+
+    name = request.args.get("name")
+    gender = request.args.get("gender")
 
     status = {
         "accept_responses": config.get("accept_responses", True),
@@ -282,45 +286,50 @@ def status():
         "message": ""
     }
 
-    # 檢查是否接受回應
+    # 不接受回應
     if not status["accept_responses"]:
         status["message"] = "目前不接受回應"
         return jsonify(status)
 
-    # 檢查截止時間
+    # 截止時間
     if status["deadline"]:
         try:
             deadline_dt = datetime.strptime(status["deadline"], "%Y-%m-%d %H:%M:%S")
             if now > deadline_dt:
                 status["message"] = "已超過截止時間"
                 return jsonify(status)
-        except Exception:
+        except:
             pass
 
-    # 從前端取得姓名與性別
-    name = request.args.get("name")
-    gender = request.args.get("gender")
+    if not gender:
+        return jsonify(status)
 
-    count = 0
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
 
-    if name and gender:
-        conn = sqlite3.connect("database.db")
-        cur = conn.cursor()
+    # 🔥 優先用帳號判斷
+    if session.get("user"):
+        email = session["user"].get("email")
+        cur.execute(
+            "SELECT COUNT(*) FROM songs WHERE email = ? AND gender = ?",
+            (email, gender)
+        )
+    # 🔥 未登入才用姓名
+    elif name:
         cur.execute(
             "SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?",
             (name, gender)
         )
-        count = cur.fetchone()[0]
+    else:
         conn.close()
-        conn = sqlite3.connect("database.db")
-        cur = conn.cursor()
-        cur.execute(*cur_query)
-        count = cur.fetchone()[0]
-        conn.close()
+        return jsonify(status)
+
+    count = cur.fetchone()[0]
+    conn.close()
 
     status["current_count"] = count
 
-    # 性別限制判斷
+    # 性別限制
     if gender == "男" and status["male_limit_enabled"]:
         status["remaining"] = max(0, status["male_limit_count"] - count)
     elif gender == "女" and status["female_limit_enabled"]:
@@ -331,8 +340,6 @@ def status():
             status["message"] = "已達點歌上限"
         else:
             status["message"] = f"你還可以再點 {status['remaining']} 首歌"
-    else:
-        status["message"] = "尚未登入或未提供姓名，請先登入或輸入姓名才能點歌"
 
     return jsonify(status)
     
