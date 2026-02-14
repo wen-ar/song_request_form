@@ -433,6 +433,46 @@
       });
     });
 
+    // 檢查限制函式
+    function checkStatus() {
+      const name = document.getElementById("name").value;
+      const gender = document.getElementById("gender").value;
+
+      if (!gender) return;
+
+      fetch(`/status?name=${encodeURIComponent(name)}&gender=${encodeURIComponent(gender)}`)
+        .then(res => res.json())
+        .then(data => {
+          const box = document.getElementById("statusBox");
+          let html = "";
+
+          if (!data.accept_responses) {
+            html = `<div class="alert alert-danger"><h3>目前不接受回應</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } 
+          else if (data.deadline && new Date() > new Date(data.deadline)) {
+            html = `<div class="alert alert-warning"><h3>已超過截止時間</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } 
+          else if (data.remaining !== null && data.remaining <= 0) {
+            html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } 
+          else if (data.remaining !== null) {
+            html = `<div class="alert alert-info">
+                      你還可以再點 ${data.remaining} 首歌
+                    </div>`;
+            document.getElementById("songForm").style.display = "block";
+          }
+
+          box.innerHTML = html;
+        });
+    }
+
+    // 綁定事件
+    document.getElementById("name").addEventListener("change", checkStatus);
+    document.getElementById("gender").addEventListener("change", checkStatus);
+
     // 即時 Spotify 搜尋建議
     document.getElementById("songName").addEventListener("input", function() {
       const query = this.value.trim();
@@ -519,30 +559,5 @@
           console.error("讀取 config 錯誤：", err);
         });
       
-      // 3. 再顯示系統狀態
-      fetch("/status")
-        .then(res => res.json())
-        .then(data => {
-          const box = document.getElementById("statusBox");
-          let html = "";
-
-          if (!data.accept_responses) {
-            html = `<div class="alert alert-danger"><h3>目前不接受回應</h3></div>`;
-            document.getElementById("songForm").style.display = "none";
-          } else if (data.deadline && new Date() > new Date(data.deadline)) {
-            html = `<div class="alert alert-warning"><h3>已超過截止時間</h3></div>`;
-            document.getElementById("songForm").style.display = "none";
-          } else if (data.remaining !== null && data.remaining <= 0) {
-            html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
-            document.getElementById("songForm").style.display = "none";
-          } else if (data.remaining !== null) {
-            html = `<div class="alert alert-info"><p>你還可以再點 ${data.remaining} 首歌</p></div>`;
-          }
-
-          box.innerHTML = html;
-        })
-        .catch(err => {
-          console.error("讀取 status 錯誤：", err);
-        });
     };
   </script>
