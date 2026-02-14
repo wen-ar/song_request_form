@@ -297,22 +297,26 @@ def status():
         except Exception:
             pass
 
-    # 判斷使用者身份：登入優先，否則用姓名
-    if session.get("user"):
-        email = session["user"].get("email")
-        gender = session["user"].get("gender")
-        cur_query = ("SELECT COUNT(*) FROM songs WHERE email = ? AND gender = ?", (email, gender))
-    else:
-        # 如果沒登入，可以從前端傳入暫存姓名與性別
-        name = session.get("temp_name")
-        gender = session.get("temp_gender")
-        cur_query = ("SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?", (name, gender))
+    # 從前端取得姓名與性別
+    name = request.args.get("name")
+    gender = request.args.get("gender")
 
-    conn = sqlite3.connect("database.db")
-    cur = conn.cursor()
-    cur.execute(*cur_query)
-    count = cur.fetchone()[0]
-    conn.close()
+    count = 0
+
+    if name and gender:
+        conn = sqlite3.connect("database.db")
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?",
+            (name, gender)
+        )
+        count = cur.fetchone()[0]
+        conn.close()
+        conn = sqlite3.connect("database.db")
+        cur = conn.cursor()
+        cur.execute(*cur_query)
+        count = cur.fetchone()[0]
+        conn.close()
 
     status["current_count"] = count
 
