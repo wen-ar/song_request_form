@@ -46,3 +46,16 @@ SongMate 是一個基於 **Flask** 的線上點歌系統，結合前端 HTML/JS 
 1. **安裝依賴**
    ```bash
    pip install flask flask-session requests
+
+---
+
+## License
+本專案採用 MIT License，詳見 LICENSE 檔案。
+
+---
+
+## 作者與合作
+1. wen-ar
+2. Microsoft Copilot
+3. Google Gemini
+4. Chat GPT
