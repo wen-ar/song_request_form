@@ -34,9 +34,7 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
 
-    /* 3. 白系玻璃擬態 (White Glass UI) - 應用於彈窗與導覽列 */
-    
-    /* 通用玻璃類別：你可以把這個樣式同時給彈窗跟導覽列 */
+    /* 3. 白系玻璃擬態 (White Glass UI) */
     body.festival-mode .modal-content,
     body.festival-mode .navbar {
       background: rgba(255, 255, 255, 0.50) !important; 
@@ -69,14 +67,14 @@
 
     /* 4. 導覽列（Navbar）專屬調整 */
     body.festival-mode .navbar {
-      border-radius: 16px; /* 導覽列圓角稍微收斂一點點 */
+      border-radius: 16px;
       margin-bottom: 2rem;
       padding: 0.8rem 1.2rem;
     }
 
-    /* 調整導覽列文字顏色，使其在白色玻璃上清晰可見 */
+    /* 導覽列標題字體大小與顏色 */
     body.festival-mode .navbar-brand {
-      color: #800000 !important; /* 改用深紅色呼應背景，質感更好 */
+      color: #800000 !important;
       font-weight: bold;
       text-shadow: none;
     }
@@ -115,7 +113,7 @@
       z-index: -1;
     }
 
-    /* --- [修正] 節慶標題與按鈕文字切換 --- */
+    /* 節慶標題與按鈕文字切換 */
     .festival-title {
       transition: all 0.5s;
     }
@@ -125,14 +123,12 @@
       font-weight: 900;
     }
 
-    /* 預設隱藏節慶文字 */
     .festival-text { display: none; }
-    
-    /* 節慶模式下的按鈕樣式與文字切換 */
+
     body.festival-mode .btn-primary {
       background: linear-gradient(135deg, #d40000 0%, #8b0000 100%) !important;
       border: 1px solid #ffd700 !important;
-      min-height: 50px; /* 確保按鈕不會縮小 */
+      min-height: 50px;
       font-weight: bold;
     }
 
@@ -146,14 +142,12 @@
       white-space: nowrap;
     }
 
-    /* 撥動開關的標籤顏色調整 */
     .form-check-label {
       transition: color 0.5s ease;
       cursor: pointer;
       user-select: none;
     }
 
-    /* 節慶模式下，讓開關標籤變為深紅色以對應白色玻璃背景 */
     body.festival-mode #switchLabel {
       color: #800000 !important;
       font-weight: bold;
@@ -299,7 +293,7 @@
 
   <!-- JavaScript -->
   <script>
-    // --- [更新] 粒子動畫與主題開關邏輯 ---
+    // 粒子動畫與主題開關邏輯
     const festivalSwitch = document.getElementById('festivalSwitch');
 
     function initFestivalEffect() {
@@ -323,7 +317,7 @@
       if (enable) {
         document.body.classList.add('festival-mode');
         document.getElementById('festival-canvas').style.display = 'block';
-        startParticles(); // 啟動粒子動畫
+        startParticles();
       } else {
         document.body.classList.remove('festival-mode');
         document.getElementById('festival-canvas').style.display = 'none';
@@ -482,6 +476,7 @@
 
       checkStatus();
     });
+    
     // 即時 Spotify 搜尋建議
     document.getElementById("songName").addEventListener("input", function() {
       const query = this.value.trim();
