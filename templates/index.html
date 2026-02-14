@@ -115,7 +115,7 @@
       z-index: -1;
     }
 
-    /* --- 節慶標題與按鈕文字切換 --- */
+    /* 節慶標題與按鈕文字切換 */
     .festival-title {
       transition: all 0.5s;
     }
@@ -157,7 +157,6 @@
       user-select: none;
     }
 
-    /* 系統狀態文字：加粗並優化視覺 */
     #statusBox {
       font-weight: bold !important;
       text-align: center;
@@ -194,7 +193,7 @@
     <div class="container-fluid">
 
       <a class="navbar-brand" href="{{ url_for('index') }}">
-        線上點歌表單
+       線上點歌表單
       </a>
 
       <div class="d-flex align-items-center gap-2">
@@ -203,7 +202,7 @@
         <div class="form-check form-switch me-2">
           <input class="form-check-input" type="checkbox" id="festivalSwitch">
           <label class="form-check-label" for="festivalSwitch">
-            節慶模式
+           節慶模式
           </label>
         </div>
 
@@ -231,11 +230,9 @@
              管理
           </a>
         {% endif %}
-
+      </div>
     </div>
-
-  </div>
-</nav>
+  </nav>
  
   <h2 class="mb-4 text-center festival-title">
     <span class="emoji-decor">🌱</span>
@@ -334,7 +331,7 @@
 
   <!-- JavaScript -->
   <script>
-    // --- [更新] 粒子動畫與主題開關邏輯 ---
+    // 粒子動畫與主題開關邏輯
     const festivalSwitch = document.getElementById('festivalSwitch');
 
     function initFestivalEffect() {
@@ -358,7 +355,7 @@
       if (enable) {
         document.body.classList.add('festival-mode');
         document.getElementById('festival-canvas').style.display = 'block';
-        startParticles(); // 啟動粒子動畫
+        startParticles();
       } else {
         document.body.classList.remove('festival-mode');
         document.getElementById('festival-canvas').style.display = 'none';
@@ -468,6 +465,56 @@
       });
     });
 
+    // 檢查限制函式
+    function checkStatus() {
+      const name = document.getElementById("name").value.trim();
+      const gender = document.getElementById("gender").value;
+
+      fetch(`/status?name=${encodeURIComponent(name)}&gender=${encodeURIComponent(gender)}`)
+
+      fetch(`/status?name=${encodeURIComponent(name)}&gender=${encodeURIComponent(gender)}`)
+        .then(res => res.json())
+        .then(data => {
+          const box = document.getElementById("statusBox");
+          let html = "";
+
+          if (!data.accept_responses) {
+            html = `<div class="alert alert-danger"><h3>目前不接受回應</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } 
+          else if (data.deadline && new Date() > new Date(data.deadline)) {
+            html = `<div class="alert alert-warning"><h3>已超過截止時間</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } 
+          else if (data.remaining !== null && data.remaining <= 0) {
+            html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
+            document.getElementById("songForm").style.display = "none";
+          } 
+          else if (data.remaining !== null) {
+            html = `<div class="alert alert-info">
+                      你還可以再點 ${data.remaining} 首歌
+                    </div>`;
+            document.getElementById("songForm").style.display = "block";
+          }
+
+          box.innerHTML = html;
+        });
+    }
+
+    // 綁定事件
+    document.getElementById("name").addEventListener("change", checkStatus);
+    document.getElementById("gender").addEventListener("change", () => {
+      const name = document.getElementById("name").value.trim();
+      const gender = document.getElementById("gender").value;
+
+      if (gender) {
+        localStorage.setItem("savedName", name);
+        localStorage.setItem("savedGender", gender);
+      }
+
+      checkStatus();
+    });
+
     // 即時 Spotify 搜尋建議
     document.getElementById("songName").addEventListener("input", function() {
       const query = this.value.trim();
@@ -544,7 +591,22 @@
       // 1. 初始化節慶效果
       initFestivalEffect();
 
-      // 2. 先顯示通知
+      // 2. 讀取之前儲存的身份
+      const savedName = localStorage.getItem("savedName");
+      const savedGender = localStorage.getItem("savedGender");
+
+      if (savedName) {
+        document.getElementById("name").value = savedName;
+      }
+
+      if (savedGender) {
+        document.getElementById("gender").value = savedGender;
+      }
+
+      // 3. 一進頁面就計算
+      checkStatus();
+      
+      // 4. 先顯示通知
       fetch("/config")
         .then(res => res.json())
         .then(config => {
@@ -554,33 +616,5 @@
           console.error("讀取 config 錯誤：", err);
         });
       
-      // 3. 再顯示系統狀態
-      fetch("/status")
-        .then(res => res.json())
-        .then(data => {
-          const box = document.getElementById("statusBox");
-          let html = "";
-
-          if (!data.accept_responses) {
-            html = `<div class="alert alert-danger"><h3>目前不接受回應</h3></div>`;
-            document.getElementById("songForm").style.display = "none";
-          } else if (data.deadline && new Date() > new Date(data.deadline)) {
-            html = `<div class="alert alert-warning"><h3>已超過截止時間</h3></div>`;
-            document.getElementById("songForm").style.display = "none";
-          } else if (data.remaining !== null && data.remaining <= 0) {
-            html = `<div class="alert alert-danger"><h3>已達點歌上限</h3></div>`;
-            document.getElementById("songForm").style.display = "none";
-          } else if (data.remaining !== null) {
-            html = `<div class="alert alert-info"><p>你還可以再點 ${data.remaining} 首歌</p></div>`;
-          }
-
-          box.innerHTML = html;
-        })
-        .catch(err => {
-          console.error("讀取 status 錯誤：", err);
-        });
     };
   </script>
-
-</body>
-</html>
