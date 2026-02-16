@@ -163,29 +163,42 @@
 
     /* 手機版專屬微調 */
     @media (max-width: 768px) {
-      /* 縮小容器留白，增加內容寬度 */
+      /* 讓主容器更寬，不要留兩大片空白 */
       body.festival-mode .container.mt-5 {
-        padding: 20px;
+        padding: 20px 15px !important;
         margin-top: 10px !important;
+        border-radius: 16px;
       }
 
-      /* 調整標題大小，避免換行太亂 */
-      .festival-title {
-        font-size: 1.5rem;
-      }
-
-      /* 調整導覽列排版，避免重疊 */
+      /* 導覽列改為垂直排列，避免擠壓 */
       .navbar .container-fluid {
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
       }
-  
-      /* 隱藏長 email，避免擠壓空間 */
+
+      /* 隱藏過長的 Email，或讓它換行 */
       .navbar-text {
+        display: block;
+        text-align: center;
         font-size: 0.8rem;
-        max-width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        margin: 5px 0 !important;
+      }
+
+      /* 讓按鈕在手機上更大更好按 */
+      .nav-btn-custom {
+         width: 100%; /* 登出按鈕撐滿，方便大拇指點選 */
+         height: 44px;
+      }
+
+      /* 標題字體縮放，避免換行太突兀 */
+      .festival-title {
+        font-size: 1.4rem !important;
+      }
+
+      /* Spotify 連結預留字樣縮小 */
+      input::placeholder {
+        font-size: 0.8rem;
       }
     }
 
