@@ -161,8 +161,32 @@
       filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
     }
 
-    @media (max-width: 576px) {
-      .emoji-decor { font-size: 0.8em; }
+    /* 手機版專屬微調 */
+    @media (max-width: 768px) {
+      /* 縮小容器留白，增加內容寬度 */
+      body.festival-mode .container.mt-5 {
+        padding: 20px;
+        margin-top: 10px !important;
+      }
+
+      /* 調整標題大小，避免換行太亂 */
+      .festival-title {
+        font-size: 1.5rem;
+      }
+
+      /* 調整導覽列排版，避免重疊 */
+      .navbar .container-fluid {
+        flex-wrap: wrap;
+      }
+  
+      /* 隱藏長 email，避免擠壓空間 */
+      .navbar-text {
+        font-size: 0.8rem;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
 
   </style>
