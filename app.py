@@ -540,7 +540,7 @@ def admin_page():
 # ======================
 @app.route("/")
 def index():
-        return render_template("index.html")
+    return render_template("index.html", ADMIN_EMAILS=ADMIN_EMAILS)
 
 # ======================
 # 啟動 Flask
