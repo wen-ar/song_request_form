@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
   <style>
-    /* 1. 現代節慶背景：流動漸變 */
     body.festival-mode {
       background: linear-gradient(-45deg, #4b0000, #800000, #d4af37, #600000);
       background-size: 400% 400%;
@@ -23,7 +22,6 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* 2. 主容器毛玻璃效果 */
     body.festival-mode .container.mt-5 {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
@@ -34,7 +32,6 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
 
-    /* 3. 白系玻璃擬態 (White Glass UI) */
     body.festival-mode .modal-content,
     body.festival-mode .navbar {
       background: rgba(255, 255, 255, 0.50) !important; 
@@ -44,7 +41,6 @@
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
     }
 
-    /* 彈窗專屬調整 */
     body.festival-mode .modal-content {
       border-radius: 24px !important;
       color: #212529 !important;
@@ -65,14 +61,12 @@
       filter: none !important; 
     }
 
-    /* 4. 導覽列（Navbar）專屬調整 */
     body.festival-mode .navbar {
       border-radius: 16px;
       margin-bottom: 2rem;
       padding: 0.8rem 1.2rem;
     }
 
-    /* 導覽列標題字體大小與顏色 */
     body.festival-mode .navbar-brand {
       color: #800000 !important;
       font-weight: bold;
@@ -84,7 +78,6 @@
       text-shadow: none;
     }
 
-    /* 5. 表單標籤與標題 (維持金色亮眼感) */
     body.festival-mode .form-label {
       color: #ffd700 !important;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
@@ -95,14 +88,12 @@
       font-weight: bold; 
     }
 
-    /* 6. 按鈕樣式優化 */
     body.festival-mode .btn-primary {
       border-radius: 12px;
       background: rgba(13, 110, 253, 0.9) !important;
       border: none !important;
     }
 
-    /* 7. 粒子畫布 */
     #festival-canvas {
       position: fixed;
       top: 0;
@@ -113,7 +104,6 @@
       z-index: -1;
     }
 
-    /* 節慶標題與按鈕文字切換 */
     .festival-title {
       transition: all 0.5s;
     }
@@ -132,7 +122,6 @@
       font-weight: bold;
     }
 
-    /* 固定登入、登出與管理按鈕的大小 */
     .nav-btn-custom {
       min-width: 90px;
       height: 38px;
@@ -156,28 +145,23 @@
     body.festival-mode .btn-primary .normal-text { display: none !important; }
     body.festival-mode .btn-primary .festival-text { display: inline-block !important; }
 
-    /* 背景畫布的 Emoji 效果 */
     #festival-canvas {
       filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
     }
 
-    /* 手機版專屬微調 */
     @media (max-width: 768px) {
-      /* 讓主容器更寬，不要留兩大片空白 */
       body.festival-mode .container.mt-5 {
         padding: 20px 15px !important;
         margin-top: 10px !important;
         border-radius: 16px;
       }
 
-      /* 導覽列改為垂直排列，避免擠壓 */
       .navbar .container-fluid {
         flex-direction: column;
         align-items: center;
         gap: 10px;
       }
 
-      /* 隱藏過長的 Email，或讓它換行 */
       .navbar-text {
         display: block;
         text-align: center;
@@ -185,18 +169,15 @@
         margin: 5px 0 !important;
       }
 
-      /* 讓按鈕在手機上更大更好按 */
       .nav-btn-custom {
-         width: 100%; /* 登出按鈕撐滿，方便大拇指點選 */
+         width: 100%;
          height: 44px;
       }
 
-      /* 標題字體縮放，避免換行太突兀 */
       .festival-title {
         font-size: 1.4rem !important;
       }
 
-      /* Spotify 連結預留字樣縮小 */
       input::placeholder {
         font-size: 0.8rem;
       }
