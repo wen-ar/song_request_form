@@ -63,7 +63,6 @@ def login_microsoft():
 def login_google():
     redirect_uri = url_for("authorize_google", _external=True, _scheme="https")
     return google.authorize_redirect(redirect_uri)
-
 @app.route("/login/callback/microsoft")
 def authorize_microsoft():
     try:
