@@ -216,6 +216,10 @@
             目前登入：{{ session["user"].get("email") }}
           </span>
 
+          <button class="btn btn-outline-primary btn-sm nav-btn-custom me-2" onclick="fetchHistory()">
+            我的紀錄
+          </button>
+
           <a href="{{ url_for('logout') }}"
              class="btn btn-outline-secondary btn-sm nav-btn-custom">
              登出
@@ -268,6 +272,8 @@
       <input type="text" class="form-control" id="songName" name="songName" required aria-autocomplete="list" aria-controls="songSuggestions">
       <div id="songSuggestions" class="list-group position-absolute w-100" style="z-index:1000;" role="listbox"></div>
     </div>
+
+    <div id="duplicateWarning" class="mb-2 text-danger" style="font-size: 0.9rem; font-weight: bold; min-height: 1.5rem;"></div>
 
     <div class="mb-3">
       <label for="songLink" class="form-label">Spotify 連結</label>
@@ -336,23 +342,18 @@
 
   <!-- JavaScript -->
   <script>
-    // 粒子動畫與主題開關邏輯
     const festivalSwitch = document.getElementById('festivalSwitch');
 
     function initFestivalEffect() {
       const now = new Date();
       const isFebruary = now.getMonth() === 1;
-      
-      // 讀取瀏覽器儲存的偏好 (localStorage)
+
       const savedPref = localStorage.getItem('festivalEnabled');
-      
-      // 決定規則：如果有存過設定就用設定，沒存過就看月份 (預設開啟)
+
       const shouldEnable = (savedPref === null) ? isFebruary : (savedPref === 'true');
 
-      // 設定開關按鈕狀態
       festivalSwitch.checked = shouldEnable;
-      
-      // 執行切換模式
+
       applyFestivalMode(shouldEnable);
     }
 
@@ -365,16 +366,13 @@
         document.body.classList.remove('festival-mode');
         document.getElementById('festival-canvas').style.display = 'none';
       }
-      // 將使用者的選擇存入 localStorage
       localStorage.setItem('festivalEnabled', enable);
     }
 
-    // 監聽開關撥動動作
     festivalSwitch.addEventListener('change', (e) => {
       const isEnabled = e.target.checked;
       applyFestivalMode(isEnabled);
-      
-      // 如果使用者開啟主題，重新整理頁面以確保 Canvas 粒子動畫乾淨初始化
+
       if (isEnabled) {
         location.reload();
       }
@@ -426,8 +424,7 @@
         }
       }
 
-      // 生成 50 個漂浮物
-      for (let i = 0; i < 50; i++) particles.push(new FestivalEmoji());
+      for (let i = 0; i < 35; i++) particles.push(new FestivalEmoji());
 
       function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -622,4 +619,117 @@
         });
       
     };
+
+  const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
+  const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
+  function fetchHistory() {
+    fetch('/results')
+      .then(res => res.json())
+      .then(data => {
+        const list = document.getElementById('historyList');
+        if (data.length === 0) {
+          list.innerHTML = '<p class="text-center">尚無紀錄</p>';
+        } else {
+          list.innerHTML = data.map(item => `
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+              <div class="text-truncate" style="max-width: 70%;">${item.songName}</div>
+              <button class="btn btn-warning btn-sm" onclick="openEditModal('${item.id}', '${item.songName}', '${item.songLink}')">修改</button>
+            </div>
+          `).join('');
+        }
+        historyModal.show();
+      });
+  }
+
+  function openEditModal(id, name, link) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editSongName').value = name;
+    document.getElementById('editSongLink').value = link;
+    editModal.show();
+  }
+
+  function submitUpdate() {
+    const id = document.getElementById('editId').value;
+    const data = {
+      songName: document.getElementById('editSongName').value,
+      songLink: document.getElementById('editSongLink').value
+    };
+    fetch(`/update/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) {
+        editModal.hide();
+        fetchHistory();
+      } else {
+        alert("修改失敗：" + res.error);
+      }
+    });
+  }
+
+  let checkTimeout;
+  document.querySelectorAll('#songName, #songLink').forEach(input => {
+    input.addEventListener('input', () => {
+      clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(() => {
+        const sName = document.getElementById('songName').value;
+        const sLink = document.getElementById('songLink').value;
+        if (!sName && !sLink) return;
+      
+        fetch(`/check_duplicate?songName=${encodeURIComponent(sName)}&songLink=${encodeURIComponent(sLink)}`)
+          .then(res => res.json())
+          .then(data => {
+            const warn = document.getElementById('duplicateWarning');
+            warn.innerText = data.is_duplicate ? "⚠️ 這首歌已經有人點過囉！" : "";
+          });
+      }, 500);
+    });
+  });
   </script>
+
+  <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">我的點歌紀錄</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="historyList">
+          <p class="text-center text-muted">載入中...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">修改歌曲資訊</h6>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId">
+          
+          <div class="mb-2">
+            <label class="small fw-bold">歌名</label>
+            <input type="text" id="editSongName" class="form-control form-control-sm">
+          </div>
+          <div class="mb-2">
+            <label class="small fw-bold">Spotify 連結</label>
+            <input type="url" id="editSongLink" class="form-control form-control-sm">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+          <button class="btn btn-success btn-sm" onclick="submitUpdate()">儲存修改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
