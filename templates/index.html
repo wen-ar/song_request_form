@@ -588,6 +588,67 @@
       new bootstrap.Modal(document.getElementById('notifyModal')).show();
     }
 
+   // 修改視窗的搜尋建議處理
+  function setupEditSearch() {
+    const editInput = document.getElementById('editSongName');
+    const editSuggest = document.getElementById('editSongSuggestions');
+    const editLink = document.getElementById('editSongLink');
+
+    editInput.addEventListener('input', function() {
+      const query = this.value.trim();
+      if (query.length < 2) {
+        editSuggest.innerHTML = '';
+        return;
+      }
+
+      // 複用你原本的 /search_spotify 邏輯
+      fetch(`/search_spotify?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          editSuggest.innerHTML = data.map(track => `
+            <button type="button" class="list-group-item list-group-item-action py-2" 
+              onclick="selectTrackForEdit('${track.name.replace(/'/g, "\\'")} - ${track.artists.replace(/'/g, "\\'")}', '${track.external_urls.spotify}')">
+              <div class="d-flex align-items-center">
+                <img src="${track.album_art}" style="width:30px;" class="me-2">
+                <div>
+                  <div class="small fw-bold">${track.name}</div>
+                  <div class="text-muted" style="font-size:0.75rem;">${track.artists}</div>
+                </div>
+              </div>
+            </button>
+          `).join('');
+        });
+    });
+  }
+
+  // 點擊搜尋建議時的動作
+  function selectTrackForEdit(fullName, url) {
+    document.getElementById('editSongName').value = fullName;
+    document.getElementById('editSongLink').value = url;
+    document.getElementById('editSongSuggestions').innerHTML = '';
+  }
+
+  // 開啟修改彈窗
+  function openEditModal(id, name, link) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editSongName').value = name;
+    document.getElementById('editSongLink').value = link;
+
+    // 隱藏歷史紀錄彈窗
+    const historyModalEl = document.getElementById('historyModal');
+    bootstrap.Modal.getInstance(historyModalEl).hide();
+
+    // 顯示修改彈窗
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    editModal.show();
+
+    // 初始化搜尋功能 (只在第一次開啟時綁定，或確保不重複綁定)
+    if (!window.editSearchInitialized) {
+      setupEditSearch();
+      window.editSearchInitialized = true;
+    }
+  }
+
     // 頁面載入時
     window.onload = () => {
       // 1. 初始化節慶效果
@@ -675,24 +736,32 @@
 
   function submitUpdate() {
     const id = document.getElementById('editId').value;
-    const data = {
-      songName: document.getElementById('editSongName').value,
-      songLink: document.getElementById('editSongLink').value
-    };
+    const songName = document.getElementById('editSongName').value;
+    const songLink = document.getElementById('editSongLink').value;
+
+    if (!songName || !songLink) {
+      alert("請填寫歌曲名稱與連結");
+      return;
+    }
+
     fetch(`/update/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ songName, songLink })
     })
     .then(res => res.json())
-    .then(res => {
-      if (res.success) {
-        editModal.hide();
+    .then(data => {
+      if (data.success) {
+        alert("修改成功！");
+        // 關閉彈窗
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        // 重新整理歷史紀錄清單
         fetchHistory();
       } else {
-        alert("修改失敗：" + res.error);
+      alert("錯誤：" + data.error);
       }
-    });
+    })
+    .catch(err => alert("網路錯誤，請稍後再試"));
   }
 
   let checkTimeout;
@@ -730,21 +799,24 @@
   </div>
 
   <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h6 class="modal-title">修改歌曲資訊</h6>
+          <h5 class="modal-title">修改歌曲資訊</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="editId">
-          
-          <div class="mb-2">
-            <label class="small fw-bold">歌名</label>
-            <input type="text" id="editSongName" class="form-control form-control-sm">
+        
+          <div class="mb-3 position-relative">
+            <label class="form-label small fw-bold">歌曲名稱</label>
+            <input type="text" id="editSongName" class="form-control" placeholder="輸入歌名關鍵字...">
+            <div id="editSongSuggestions" class="list-group position-absolute w-100" style="z-index:1100;"></div>
           </div>
-          <div class="mb-2">
-            <label class="small fw-bold">Spotify 連結</label>
-            <input type="url" id="editSongLink" class="form-control form-control-sm">
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Spotify 連結</label>
+            <input type="url" id="editSongLink" class="form-control" placeholder="選取歌曲後自動帶入">
           </div>
         </div>
         <div class="modal-footer">
@@ -754,6 +826,5 @@
       </div>
     </div>
   </div>
-
 </body>
 </html>
