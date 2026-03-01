@@ -210,15 +210,15 @@
            節慶模式
           </label>
         </div>
+       
+        <button class="btn btn-outline-primary btn-sm nav-btn-custom me-2" onclick="fetchHistory()">
+            我的紀錄
+        </button>
 
         {% if session.get("user") %}
           <span class="navbar-text me-2">
             目前登入：{{ session["user"].get("email") }}
           </span>
-
-          <button class="btn btn-outline-primary btn-sm nav-btn-custom me-2" onclick="fetchHistory()">
-            我的紀錄
-          </button>
 
           <a href="{{ url_for('logout') }}"
              class="btn btn-outline-secondary btn-sm nav-btn-custom">
@@ -624,21 +624,45 @@
   const editModal = new bootstrap.Modal(document.getElementById('editModal'));
 
   function fetchHistory() {
+    const list = document.getElementById('historyList');
+    const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
+
+    const isLogin = document.body.innerText.includes("目前登入：");
+
+    if (!isLogin) {
+      list.innerHTML = `
+        <div class="text-center py-4">
+          <h6 class="text-muted mb-3">此功能為登入使用者專屬</h6>
+          <p class="small text-secondary mb-4">登入後即可查看並修改您的點歌紀錄</p>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal" onclick="bootstrap.Modal.getInstance(document.getElementById('historyModal')).hide()">
+            立即登入
+          </button>
+        </div>`;
+      historyModal.show();
+      return;
+    }
+
+    list.innerHTML = '<p class="text-center py-3 text-muted">載入中...</p>';
+    historyModal.show();
+
     fetch('/results')
       .then(res => res.json())
       .then(data => {
-        const list = document.getElementById('historyList');
-        if (data.length === 0) {
-          list.innerHTML = '<p class="text-center">尚無紀錄</p>';
+        if (!data || data.length === 0) {
+          list.innerHTML = '<p class="text-center py-4 text-muted">目前尚無您的點歌紀錄</p>';
         } else {
           list.innerHTML = data.map(item => `
             <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-              <div class="text-truncate" style="max-width: 70%;">${item.songName}</div>
-              <button class="btn btn-warning btn-sm" onclick="openEditModal('${item.id}', '${item.songName}', '${item.songLink}')">修改</button>
+              <div class="text-truncate" style="max-width: 70%;">
+                <strong>${item.song || item.songName}</strong>
+              </div>
+              <button class="btn btn-warning btn-sm" onclick="openEditModal('${item.id}', '${item.song || item.songName}', '${item.link || item.songLink}')">修改</button>
             </div>
           `).join('');
         }
-        historyModal.show();
+      })
+      .catch(err => {
+        list.innerHTML = '<p class="text-center py-3 text-danger">讀取失敗，請重新整理頁面</p>';
       });
   }
 
