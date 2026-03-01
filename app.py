@@ -35,8 +35,8 @@ ADMIN_EMAILS = ["huiyingl936@gmail.com", "S0702265@o365.kh.edu.tw", "lynnn0215@g
 oauth = OAuth(app)
 microsoft = oauth.register(
     name="microsoft",
-    client_id="d952e562-dd22-4a94-9dff-36593a201f31",   # Application (client) ID
-    client_secret="AiK8Q~1zOKx3Dq5fm.pjhjCK6cQsPvgW1pWCcab0",                   # 需要在 Azure 建立
+    client_id="d952e562-dd22-4a94-9dff-36593a201f31",
+    client_secret="AiK8Q~1zOKx3Dq5fm.pjhjCK6cQsPvgW1pWCcab0",
     server_metadata_url="https://login.microsoftonline.com/00057328-0b9c-443f-ae16-0b2d1761430d/v2.0/.well-known/openid-configuration",
     client_kwargs={
         "scope": "openid email profile User.Read"
@@ -107,11 +107,11 @@ def get_spotify_token():
     )
     token_data = res.json()
     spotify_token = token_data["access_token"]
-    spotify_token_expiry = time.time() + token_data["expires_in"] - 60  # 提前 1 分鐘更新
+    spotify_token_expiry = time.time() + token_data["expires_in"] - 60
     return spotify_token
 
 def safe_spotify_request(url, headers, params=None):
-    for attempt in range(3):  # 最多重試 3 次
+    for attempt in range(3):
         try:
             res = requests.get(url, headers=headers, params=params, timeout=5)
             if res.status_code == 200:
@@ -145,7 +145,7 @@ def init_db():
 init_db()
 
 # ======================
-# 載入設定檔 (config.json)
+# 載入設定檔
 # ======================
 def load_config():
     try:
@@ -154,12 +154,10 @@ def load_config():
     except FileNotFoundError:
         config = {}
 
-    # 預設值補齊
     config.setdefault("accept_responses", True)
     config.setdefault("deadline", "")
     config.setdefault("notification_content", "")
     config.setdefault("version", "1.0.0")
-    # 新增男女限制設定的預設值
     config.setdefault("male_limit_enabled", False)
     config.setdefault("male_limit_count", 0)
     config.setdefault("female_limit_enabled", False)
@@ -185,7 +183,6 @@ def search():
         params={"q": query, "type": "track", "limit": 5}
     )
 
-    # 如果 API 請求失敗，直接回傳錯誤
     if "error" in data:
         return jsonify(data), 500
 
@@ -200,17 +197,15 @@ def search():
     return jsonify(results)
 
 # ======================
-# 表單提交 API
+# 表單提交
 # ======================
 @app.route("/submit", methods=["POST"])
 def submit():
     config = load_config()
 
-    # 檢查是否接受回應
     if not config.get("accept_responses", True):
         return jsonify({"error": "目前已停止收集回應"}), 403
 
-    # 檢查截止時間
     if config.get("deadline"):
         try:
             deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
@@ -219,7 +214,6 @@ def submit():
         except Exception:
             pass
 
-    # 取得前端送來的資料
     data = request.json
     name = data.get("name")
     gender = data.get("gender")
@@ -229,7 +223,6 @@ def submit():
     if not all([name, gender, song, link]):
         return jsonify({"error": "欄位不可為空"}), 400
 
-    # 判斷使用者身份：登入優先，否則用姓名
     if session.get("user"):
         email = session["user"].get("email")
         cur_query = ("SELECT COUNT(*) FROM songs WHERE email = ? AND gender = ?", (email, gender))
@@ -242,13 +235,20 @@ def submit():
     count = cur.fetchone()[0]
     conn.close()
 
-    # 性別限制判斷
     if gender == "男" and config.get("male_limit_enabled") and count >= config.get("male_limit_count", 0):
         return jsonify({"error": "你已達男生點歌上限"}), 403
     if gender == "女" and config.get("female_limit_enabled") and count >= config.get("female_limit_count", 0):
         return jsonify({"error": "你已達女生點歌上限"}), 403
 
-    # --- 寫入資料庫 ---
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM songs WHERE song = ? AND link = ?", (song, link))
+    duplicate_count = cur.fetchone()[0]
+    if duplicate_count > 0:
+        conn.close()
+        return jsonify({"error": "這首歌已經有人提交過了"}), 403
+    conn.close()
+
     email = session["user"]["email"] if session.get("user") else None
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
@@ -260,9 +260,50 @@ def submit():
     conn.close()
 
     return jsonify({"success": True})
+
+# ======================
+# 修改歌曲
+# ======================
+@app.route("/update/<int:song_id>", methods=["PUT"])
+def update_song(song_id):
+    config = load_config()
+    if config.get("deadline"):
+        try:
+            deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
+            if datetime.now() > deadline_dt:
+                return jsonify({"error": "已超過截止日期，不能修改"}), 403
+        except Exception:
+            pass
+
+    data = request.json
+    new_song = data.get("songName")
+    new_link = data.get("songLink")
+
+    if not all([new_song, new_link]):
+        return jsonify({"error": "欄位不可為空"}), 400
+
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+
+    if session.get("user"):
+        email = session["user"].get("email")
+        cur.execute("SELECT * FROM songs WHERE id = ? AND email = ?", (song_id, email))
+    else:
+        name = data.get("name")
+        cur.execute("SELECT * FROM songs WHERE id = ? AND name = ?", (song_id, name))
+
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"error": "找不到符合身份的紀錄"}), 403
+
+    cur.execute("UPDATE songs SET song = ?, link = ? WHERE id = ?", (new_song, new_link, song_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "updated_id": song_id})
     
 # ======================
-# 狀態檢查 API
+# 狀態檢查
 # ======================
 @app.route("/status")
 def status():
@@ -285,12 +326,10 @@ def status():
         "message": ""
     }
 
-    # 不接受回應
     if not status["accept_responses"]:
         status["message"] = "目前不接受回應"
         return jsonify(status)
 
-    # 截止時間
     if status["deadline"]:
         try:
             deadline_dt = datetime.strptime(status["deadline"], "%Y-%m-%d %H:%M:%S")
@@ -306,14 +345,13 @@ def status():
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
 
-    # 🔥 優先用帳號判斷
     if session.get("user"):
         email = session["user"].get("email")
         cur.execute(
             "SELECT COUNT(*) FROM songs WHERE email = ? AND gender = ?",
             (email, gender)
         )
-    # 🔥 未登入才用姓名
+
     elif name:
         cur.execute(
             "SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?",
@@ -328,7 +366,6 @@ def status():
 
     status["current_count"] = count
 
-    # 性別限制
     if gender == "男" and status["male_limit_enabled"]:
         status["remaining"] = max(0, status["male_limit_count"] - count)
     elif gender == "女" and status["female_limit_enabled"]:
@@ -343,7 +380,7 @@ def status():
     return jsonify(status)
     
 # ======================
-# 重置 ID API
+# 重置 ID
 # ======================
 
 @app.route("/reset_ids", methods=["POST"])
@@ -351,14 +388,11 @@ def reset_ids():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
-    # 讀取所有資料
     cursor.execute("SELECT * FROM songs ORDER BY id")
     rows = cursor.fetchall()
 
-    # 清空資料表
     cursor.execute("DELETE FROM songs")
 
-    # 重新插入並重編 ID
     for i, row in enumerate(rows, start=1):
         cursor.execute(
             "INSERT INTO songs (id, name, gender, song, link, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
@@ -370,7 +404,7 @@ def reset_ids():
     return jsonify({"success": True})
 
 # ======================
-# 匯出 Excel API
+# 匯出 Excel
 # ======================
 @app.route("/export")
 def export():
@@ -387,7 +421,7 @@ def export():
     return send_file(filename, as_attachment=True)
     
 # ======================
-# 管理設定 API
+# 管理設定
 # ======================
 @app.route("/config", methods=["GET", "POST"])
 def config_route():
@@ -397,19 +431,16 @@ def config_route():
         data = request.json
         config = load_config()
 
-        # 更新基本設定
         if "accept_responses" in data:
             config["accept_responses"] = data["accept_responses"]
         if "deadline" in data:
             config["deadline"] = data["deadline"]
 
-        # 更新通知設定
         if "notification_content" in data:
             config["notification_content"] = data["notification_content"]
         if "version" in data:
             config["version"] = data["version"]
 
-        # ✅ 更新限制設定
         if "male_limit_enabled" in data:
             config["male_limit_enabled"] = data["male_limit_enabled"]
         if "male_limit_count" in data:
@@ -419,14 +450,13 @@ def config_route():
         if "female_limit_count" in data:
             config["female_limit_count"] = int(data["female_limit_count"])
 
-        # 寫回檔案
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
 
         return jsonify({"success": True})
 
 # ======================
-# 刪除 API
+# 刪除
 # ======================
 @app.route("/delete/<int:song_id>", methods=["DELETE"])
 def delete_song(song_id):
@@ -460,7 +490,7 @@ def delete_all_songs():
         return jsonify({"error": str(e)}), 500
 
 # ======================
-# 結果清單 & 單一結果 API
+# 結果清單 & 單一結果
 # ======================
 @app.route("/results")
 def get_results():
@@ -521,8 +551,8 @@ def notify():
 
 @app.route("/result/<int:result_id>")
 def result_detail(result_id):
-    result = get_result_by_id(result_id)  # 假設這是你抓資料的函式
-    email = result.get("email", "無")     # 如果沒有 email 就顯示「無」
+    result = get_result_by_id(result_id)
+    email = result.get("email", "無")
     return render_template("result_detail.html", result=result, email=email)
 
 # ======================
