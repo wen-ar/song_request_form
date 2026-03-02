@@ -732,10 +732,15 @@
     const id = document.getElementById('editId').value;
     const songName = document.getElementById('editSongName').value;
     const songLink = document.getElementById('editSongLink').value;
-    const name = document.getElementById('name').value;
+    const name = document.getElementById('name').value.trim;
 
     if (!songName || !songLink) {
       alert("請填寫歌曲名稱與連結");
+      return;
+    }
+
+    if (!name) {
+      alert("請確保主表單的姓名欄有填寫，以便驗證身份");
       return;
     }
 
