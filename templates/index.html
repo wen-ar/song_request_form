@@ -742,7 +742,11 @@
     fetch(`/update/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ songName, songLink, name })
+      body: JSON.stringify({
+        songName: songName, 
+        songLink: songLink,
+        name: name
+      })
     })
     .then(res => res.json())
     .then(data => {
