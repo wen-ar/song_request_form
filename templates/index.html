@@ -588,69 +588,67 @@
       new bootstrap.Modal(document.getElementById('notifyModal')).show();
     }
 
-   // 修改視窗的搜尋建議處理
-  function setupEditSearch() {
-    const editInput = document.getElementById('editSongName');
-    const editSuggest = document.getElementById('editSongSuggestions');
-    const editLink = document.getElementById('editSongLink');
+    function setupEditSearch() {
+      const editInput = document.getElementById('editSongName');
+      const editSuggest = document.getElementById('editSongSuggestions');
+      const editLink = document.getElementById('editSongLink');
 
-    editInput.addEventListener('input', function() {
-      const query = this.value.trim();
-      if (query.length < 2) {
-        editSuggest.innerHTML = '';
-        return;
+      editInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length < 2) {
+          editSuggest.innerHTML = '';
+          return;
+        }
+
+        fetch(`/search?q=${encodeURIComponent(query)}`)
+          .then(res => res.json())
+          .then(data => {
+            editSuggest.innerHTML = data.map(track => `
+              <button type="button" class="list-group-item list-group-item-action py-2" 
+                onclick="selectTrackForEdit(\`${track.name.replace(/'/g, "\\'")} - ${track.artist.replace(/'/g, "\\'")}\`, '${track.url}')">
+                <div class="d-flex align-items-center">
+                  <div>
+                    <div class="small fw-bold">${track.name}</div>
+                    <div class="text-muted" style="font-size:0.75rem;">${track.artist}</div>
+                  </div>
+                </div>
+              </button>
+            `).join('');
+          })
+          .catch(err => console.error("搜尋錯誤:", err));
+      });
+    }
+   
+    // 點擊搜尋建議時的動作
+    function selectTrackForEdit(fullName, url) {
+      document.getElementById('editSongName').value = fullName;
+      document.getElementById('editSongLink').value = url;
+      document.getElementById('editSongSuggestions').innerHTML = '';
+    }
+
+    // 開啟修改彈窗
+    function openEditModal(id, name, link) {
+      document.getElementById('editId').value = id;
+      document.getElementById('editSongName').value = name;
+      document.getElementById('editSongLink').value = link;
+
+      // 隱藏歷史紀錄彈窗
+      const historyModalEl = document.getElementById('historyModal');
+      const historyModalInstance = bootstrap.Modal.getInstance(historyModalEl);
+      if (historyModalInstance) {
+        historyModalInstance.hide();
       }
 
-      // 複用你原本的 /search_spotify 邏輯
-      fetch(`/search_spotify?q=${encodeURIComponent(query)}`)
-        .then(res => res.json())
-        .then(data => {
-          editSuggest.innerHTML = data.map(track => `
-            <button type="button" class="list-group-item list-group-item-action py-2" 
-              onclick="selectTrackForEdit('${track.name.replace(/'/g, "\\'")} - ${track.artists.replace(/'/g, "\\'")}', '${track.external_urls.spotify}')">
-              <div class="d-flex align-items-center">
-                <img src="${track.album_art}" style="width:30px;" class="me-2">
-                <div>
-                  <div class="small fw-bold">${track.name}</div>
-                  <div class="text-muted" style="font-size:0.75rem;">${track.artists}</div>
-                </div>
-              </div>
-            </button>
-          `).join('');
-        });
-    });
-  }
+      // 顯示修改彈窗
+      const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+      editModal.show();
 
-  // 點擊搜尋建議時的動作
-  function selectTrackForEdit(fullName, url) {
-    document.getElementById('editSongName').value = fullName;
-    document.getElementById('editSongLink').value = url;
-    document.getElementById('editSongSuggestions').innerHTML = '';
-  }
-
-  // 開啟修改彈窗
-  function openEditModal(id, name, link) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editSongName').value = name;
-    document.getElementById('editSongLink').value = link;
-
-    // 隱藏歷史紀錄彈窗
-    const historyModalEl = document.getElementById('historyModal');
-    const historyModalInstance = bootstrap.Modal.getInstance(historyModalEl);
-    if (historyModalInstance) {
-      historyModalInstance.hide();
+      // 初始化搜尋功能 (只在第一次開啟時綁定，或確保不重複綁定)
+      if (!window.editSearchInitialized) {
+        setupEditSearch();
+        window.editSearchInitialized = true;
+      }
     }
-
-    // 顯示修改彈窗
-    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
-    editModal.show();
-
-    // 初始化搜尋功能 (只在第一次開啟時綁定，或確保不重複綁定)
-    if (!window.editSearchInitialized) {
-      setupEditSearch();
-      window.editSearchInitialized = true;
-    }
-  }
 
     // 頁面載入時
     window.onload = () => {
