@@ -266,45 +266,66 @@ def submit():
 # ======================
 @app.route("/update/<int:song_id>", methods=["POST"])
 def update_song(song_id):
+    config = load_config()
+    if config.get("deadline"):
+        try:
+            deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
+            if datetime.now() > deadline_dt:
+                return jsonify({"error": "已超過截止時間，目前無法修改歌曲"}), 403
+        except Exception as e:
+            print(f"日期格式錯誤: {e}")
 
     data = request.json
     new_song = data.get("songName")
     new_link = data.get("songLink")
-    
+    form_name = data.get("name")
+
+    if not new_song or not new_link:
+        return jsonify({"error": "歌名與連結不可為空"}), 400
+
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
 
     cur.execute("SELECT name, email FROM songs WHERE id = ?", (song_id,))
     row = cur.fetchone()
-    
     if not row:
         conn.close()
         return jsonify({"error": "找不到此紀錄"}), 404
     
     db_name, db_email = row
-
     can_edit = False
+
     if session.get("user"):
         current_email = session["user"].get("email")
         if db_email == current_email:
             can_edit = True
-        elif db_email is None and db_name == data.get("name"):
+        elif (not db_email or db_email == "無") and db_name == form_name:
             can_edit = True
     else:
-        if db_name == data.get("name"):
+        if db_name == form_name:
             can_edit = True
 
     if not can_edit:
         conn.close()
         return jsonify({"error": "找不到符合身份的紀錄或無權限修改"}), 403
 
-    current_email = session["user"].get("email") if session.get("user") else db_email
-    cur.execute("UPDATE songs SET song = ?, link = ?, email = ? WHERE id = ?", 
-                (new_song, new_link, current_email, song_id))
-    
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True})
+    final_email = session["user"].get("email") if session.get("user") else db_email
+
+    try:
+        cur.execute("UPDATE songs SET song = ?, link = ?, email = ? WHERE id = ?", 
+                    (new_song, new_link, final_email, song_id))
+        conn.commit()
+        success = True
+    except Exception as e:
+        print(f"更新失敗: {e}")
+        success = False
+    finally:
+        conn.close()
+
+    if success:
+        return jsonify({"success": True})
+    else:
+        return jsonify({"error": "資料庫更新失敗"}), 500
     
 # ======================
 # 狀態檢查
