@@ -732,6 +732,7 @@
     const id = document.getElementById('editId').value;
     const songName = document.getElementById('editSongName').value;
     const songLink = document.getElementById('editSongLink').value;
+    const name = document.getElementById('name').value;
 
     if (!songName || !songLink) {
       alert("請填寫歌曲名稱與連結");
@@ -741,15 +742,13 @@
     fetch(`/update/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ songName, songLink })
+      body: JSON.stringify({ songName, songLink, name })
     })
     .then(res => res.json())
     .then(data => {
       if (data.success) {
         alert("修改成功！");
-        // 關閉彈窗
         bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-        // 重新整理歷史紀錄清單
         fetchHistory();
       } else {
       alert("錯誤：" + data.error);
