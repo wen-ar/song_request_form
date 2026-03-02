@@ -264,43 +264,47 @@ def submit():
 # ======================
 # 修改歌曲
 # ======================
-@app.route("/update/<int:song_id>", methods=["PUT"])
+@app.route("/update/<int:song_id>", methods=["POST"])
 def update_song(song_id):
-    config = load_config()
-    if config.get("deadline"):
-        try:
-            deadline_dt = datetime.strptime(config["deadline"], "%Y-%m-%d %H:%M:%S")
-            if datetime.now() > deadline_dt:
-                return jsonify({"error": "已超過截止日期，不能修改"}), 403
-        except Exception:
-            pass
 
     data = request.json
     new_song = data.get("songName")
     new_link = data.get("songLink")
-
-    if not all([new_song, new_link]):
-        return jsonify({"error": "欄位不可為空"}), 400
-
+    
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
 
-    if session.get("user"):
-        email = session["user"].get("email")
-        cur.execute("SELECT * FROM songs WHERE id = ? AND email = ?", (song_id, email))
-    else:
-        name = data.get("name")
-        cur.execute("SELECT * FROM songs WHERE id = ? AND name = ?", (song_id, name))
-
+    cur.execute("SELECT name, email FROM songs WHERE id = ?", (song_id,))
     row = cur.fetchone()
+    
     if not row:
         conn.close()
-        return jsonify({"error": "找不到符合身份的紀錄"}), 403
+        return jsonify({"error": "找不到此紀錄"}), 404
+    
+    db_name, db_email = row
 
-    cur.execute("UPDATE songs SET song = ?, link = ? WHERE id = ?", (new_song, new_link, song_id))
+    can_edit = False
+    if session.get("user"):
+        current_email = session["user"].get("email")
+        if db_email == current_email:
+            can_edit = True
+        elif db_email is None and db_name == data.get("name"):
+            can_edit = True
+    else:
+        if db_name == data.get("name"):
+            can_edit = True
+
+    if not can_edit:
+        conn.close()
+        return jsonify({"error": "找不到符合身份的紀錄或無權限修改"}), 403
+
+    current_email = session["user"].get("email") if session.get("user") else db_email
+    cur.execute("UPDATE songs SET song = ?, link = ?, email = ? WHERE id = ?", 
+                (new_song, new_link, current_email, song_id))
+    
     conn.commit()
     conn.close()
-    return jsonify({"success": True, "updated_id": song_id})
+    return jsonify({"success": True})
     
 # ======================
 # 狀態檢查
