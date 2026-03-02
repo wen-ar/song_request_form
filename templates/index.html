@@ -636,7 +636,10 @@
 
     // 隱藏歷史紀錄彈窗
     const historyModalEl = document.getElementById('historyModal');
-    bootstrap.Modal.getInstance(historyModalEl).hide();
+    const historyModalInstance = bootstrap.Modal.getInstance(historyModalEl);
+    if (historyModalInstance) {
+      historyModalInstance.hide();
+    }
 
     // 顯示修改彈窗
     const editModal = new bootstrap.Modal(document.getElementById('editModal'));
@@ -727,13 +730,6 @@
       });
   }
 
-  function openEditModal(id, name, link) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editSongName').value = name;
-    document.getElementById('editSongLink').value = link;
-    editModal.show();
-  }
-
   function submitUpdate() {
     const id = document.getElementById('editId').value;
     const songName = document.getElementById('editSongName').value;
@@ -745,7 +741,7 @@
     }
 
     fetch(`/update/${id}`, {
-      method: "POST",
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ songName, songLink })
     })
