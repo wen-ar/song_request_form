@@ -732,40 +732,40 @@
     const id = document.getElementById('editId').value;
     const songName = document.getElementById('editSongName').value;
     const songLink = document.getElementById('editSongLink').value;
-    const name = document.getElementById('name').value.trim;
+    
+    // ★ 重要：必須抓取主表單的姓名，否則後端無法驗證「未登入點的歌」
+    const name = document.getElementById('name').value;
 
     if (!songName || !songLink) {
       alert("請填寫歌曲名稱與連結");
       return;
     }
 
-    if (!name) {
-      alert("請確保主表單的姓名欄有填寫，以便驗證身份");
-      return;
-    }
-
     fetch(`/update/${id}`, {
-      method: "PUT",
+      method: "POST", // 配合 app.py 的 methods=["POST"]
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify({ 
         songName: songName, 
         songLink: songLink,
-        name: name
+        name: name // ★ 傳送姓名給後端
       })
     })
     .then(res => res.json())
     .then(data => {
       if (data.success) {
         alert("修改成功！");
-        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-        fetchHistory();
+        // 使用正確的方式關閉 Modal
+        const editModalEl = document.getElementById('editModal');
+        const modalInstance = bootstrap.Modal.getInstance(editModalEl) || new bootstrap.Modal(editModalEl);
+        modalInstance.hide();
+        fetchHistory(); // 刷新清單
       } else {
-      alert("錯誤：" + data.error);
+        alert("修改失敗：" + data.error);
       }
     })
     .catch(err => alert("網路錯誤，請稍後再試"));
   }
-
+   
   let checkTimeout;
   document.querySelectorAll('#songName, #songLink').forEach(input => {
     input.addEventListener('input', () => {
