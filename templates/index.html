@@ -7,13 +7,55 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <style>
+    /* --- 基礎設定與置頂修正 --- */
+    body.container.mt-5 {
+      padding-top: 90px !important; /* 確保內容不被固定導覽列遮住 */
+      margin-top: 0 !important;
+      transition: all 0.5s ease;
+    }
+
+    /* --- 導覽列固定與優化 --- */
+    .navbar {
+      position: fixed; /* 固定在頂部 */
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1050;
+      border-radius: 0 !important;
+      margin-bottom: 0;
+      padding: 0.8rem 1.2rem;
+      background: rgba(255, 255, 255, 0.9) !important;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-brand {
+      color: #2e7d32 !important;
+      font-weight: 800 !important;
+      font-size: 1.75rem !important;
+      text-shadow: none;
+    }
+
+    .nav-btn-custom {
+      min-width: 90px;
+      height: 40px;
+      font-size: 1rem !important;
+      font-weight: bold !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      border-radius: 10px !important;
+    }
+
+    /* --- 節慶模式背景與動畫 (保留原設定) --- */
     body.festival-mode {
       background: linear-gradient(-45deg, #7bd389, #c7f9cc, #fce1e4, #ffd6e0);
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       min-height: 100vh;
       color: #fff !important;
-      transition: all 0.5s ease;
     }
 
     @keyframes gradientBG {
@@ -22,6 +64,7 @@
       100% { background-position: 0% 50%; }
     }
 
+    /* --- 節慶模式下的元件樣式 (保留原設定) --- */
     body.festival-mode .container.mt-5 {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
@@ -36,7 +79,6 @@
     body.festival-mode .navbar {
       background: rgba(255, 255, 255, 0.65) !important; 
       backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.6) !important;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
     }
@@ -44,39 +86,6 @@
     body.festival-mode .modal-content {
       border-radius: 24px !important;
       color: #212529 !important;
-    }
-
-    body.festival-mode .modal-header, 
-    body.festival-mode .modal-footer {
-      border: none !important;
-      background: transparent !important;
-    }
-
-    body.festival-mode .modal-title {
-      color: #000 !important;
-      font-weight: 800;
-    }
-
-    body.festival-mode .modal-header .btn-close {
-      filter: none !important; 
-    }
-
-    .navbar {
-      border-radius: 16px;
-      margin-bottom: 2rem;
-      padding: 0.8rem 1.2rem;
-    }
-
-    .navbar-brand {
-      color: #2e7d32 !important;
-      font-weight: 800 !important;
-      font-size: 1.75rem !important;
-      text-shadow: none;
-    }
-
-    body.festival-mode .navbar-text {
-      color: #333 !important;
-      text-shadow: none;
     }
 
     body.festival-mode .form-label {
@@ -90,12 +99,7 @@
       font-weight: bold;
     }
 
-    body.festival-mode .btn-primary {
-      border-radius: 12px;
-      background: rgba(13, 110, 253, 0.9) !important;
-      border: none !important;
-    }
-
+    /* --- 粒子畫布設定 --- */
     #festival-canvas {
       position: fixed;
       top: 0;
@@ -104,11 +108,11 @@
       height: 100%;
       pointer-events: none;
       z-index: -1;
+      filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
     }
 
-    .festival-title {
-      transition: all 0.5s;
-    }
+    /* --- 標題與按鈕文字切換 --- */
+    .festival-title { transition: all 0.5s; }
     body.festival-mode .festival-title {
       color: #ffd700 !important;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 15px #ff4d4d;
@@ -116,7 +120,9 @@
     }
 
     .festival-text { display: none; }
-    
+    body.festival-mode .btn-primary .normal-text { display: none !important; }
+    body.festival-mode .btn-primary .festival-text { display: inline-block !important; }
+
     body.festival-mode .btn-primary {
       border-radius: 12px;
       background: linear-gradient(135deg, #66bb6a 0%, #ec407a 100%) !important;
@@ -124,31 +130,13 @@
       min-height: 50px;
       font-weight: bold;
     }
-      
-    .nav-btn-custom {
-      min-width: 90px;
-      height: 40px;
-      font-size: 1rem !important;
-      font-weight: bold !important;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
-      border-radius: 10px !important;
-    }
 
     .form-check-label {
       color: #2e7d32 !important;
       font-weight: bold !important;
       font-size: 1rem;
-      transition: color 0.5s ease;
       cursor: pointer;
       user-select: none;
-    }
-
-    #statusBox {
-      font-weight: bold !important;
-      text-align: center;
     }
 
     #statusBox .alert {
@@ -157,88 +145,102 @@
       backdrop-filter: blur(5px);
       font-weight: 800 !important;
     }
- 
-    body.festival-mode .btn-primary .normal-text { display: none !important; }
-    body.festival-mode .btn-primary .festival-text { display: inline-block !important; }
 
-    #festival-canvas {
-      filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
-    }
+    /* --- 手機版行動端優化 (RWD) --- */
+    @media (max-width: 767.98px) {
+      /* 模擬 250% 的放大感 */
+      :root {
+        font-size: 112%; 
+      }
 
-    @media (max-width: 768px) {
-      body.festival-mode .container.mt-5 {
-        padding: 20px;
-        margin-top: 10px !important;
+      body.container.mt-5 {
+        padding: 20px 15px !important;
+        padding-top: 100px !important; /* 手機版導覽列可能較高，增加內距 */
       }
 
       .festival-title {
-        font-size: 1.5rem;
+        font-size: 1.8rem !important;
+        margin-bottom: 1.5rem !important;
       }
 
-      .navbar .container-fluid {
-        flex-wrap: wrap;
+      /* 放大表單元件，方便觸控 */
+      .form-control, .form-select, .btn {
+        padding: 12px 15px !important;
+        font-size: 1.1rem !important;
+        border-radius: 12px !important;
       }
-  
+
+      /* 漢堡選單內部的排版調整 */
+      .navbar-collapse {
+        background: rgba(255, 255, 255, 0.98);
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      }
+
+      /* 在節慶模式下，漢堡選單維持較高的可讀性 */
+      body.festival-mode .navbar-collapse {
+        background: rgba(255, 255, 255, 0.9) !important;
+        color: #333 !important;
+      }
+
       .navbar-text {
-        font-size: 0.8rem;
-        max-width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        font-size: 0.9rem;
+        margin: 10px 0;
+        display: block;
+        text-align: center;
       }
     }
-
-  </style>
+</style>
  
 <body class="container mt-5">
   <canvas id="festival-canvas"></canvas>
 
   <!-- 導覽列 -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-
       <a class="navbar-brand" href="{{ url_for('index') }}">
-       線上點歌表單
+        線上點歌表單
       </a>
 
-      <div class="d-flex align-items-center gap-2">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="切換導航">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-        <!-- 節慶模式開關 -->
-        <div class="form-check form-switch me-2">
-          <input class="form-check-input" type="checkbox" id="festivalSwitch">
-          <label class="form-check-label" for="festivalSwitch">
-           節慶模式
-          </label>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <div class="navbar-nav ms-auto align-items-lg-center gap-3">
+        
+          <div class="nav-item">
+            <div class="form-check form-switch d-flex align-items-center justify-content-center justify-content-lg-start">
+              <input class="form-check-input me-2" type="checkbox" id="festivalSwitch">
+              <label class="form-check-label" for="festivalSwitch">節慶模式</label>
+            </div>
+          </div>
+
+          <button class="btn btn-outline-primary btn-sm nav-btn-custom w-100 w-lg-auto" onclick="fetchHistory()">
+              我的紀錄
+          </button>
+
+          {% if session.get("user") %}
+            <span class="navbar-text text-center my-2 my-lg-0">
+              {{ session["user"].get("email") }}
+            </span>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm nav-btn-custom w-100 w-lg-auto">
+               登出
+            </a>
+          {% else %}
+            <a href="#" class="btn btn-primary btn-sm nav-btn-custom w-100 w-lg-auto" data-bs-toggle="modal" data-bs-target="#loginModal">
+               登入
+            </a>
+          {% endif %}
+
+          {% if session.get("user") and session["user"]["email"] in ADMIN_EMAILS %}
+            <a href="{{ url_for('admin_page') }}" class="btn btn-warning btn-sm nav-btn-custom w-100 w-lg-auto">
+               管理
+            </a>
+          {% endif %}
         </div>
-       
-        <button class="btn btn-outline-primary btn-sm nav-btn-custom me-2" onclick="fetchHistory()">
-            我的紀錄
-        </button>
-
-        {% if session.get("user") %}
-          <span class="navbar-text me-2">
-            目前登入：{{ session["user"].get("email") }}
-          </span>
-
-          <a href="{{ url_for('logout') }}"
-             class="btn btn-outline-secondary btn-sm nav-btn-custom">
-             登出
-          </a>
-        {% else %}
-          <a href="#"
-             class="btn btn-primary btn-sm nav-btn-custom"
-             data-bs-toggle="modal"
-             data-bs-target="#loginModal">
-             登入
-          </a>
-        {% endif %}
-
-        {% if session.get("user") and session["user"]["email"] in ADMIN_EMAILS %}
-          <a href="{{ url_for('admin_page') }}"
-             class="btn btn-warning btn-sm nav-btn-custom">
-             管理
-          </a>
-        {% endif %}
       </div>
     </div>
   </nav>
@@ -686,11 +688,16 @@
   const editModal = new bootstrap.Modal(document.getElementById('editModal'));
 
   function fetchHistory() {
+    const navCollapse = document.getElementById('navbarContent');
+    if (navCollapse && navCollapse.classList.contains('show')) {
+      const bsCollapse = bootstrap.Collapse.getInstance(navCollapse) || new bootstrap.Collapse(navCollapse);
+      bsCollapse.hide();
+    }
+
     const list = document.getElementById('historyList');
     const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
-
     const isLogin = document.body.innerText.includes("目前登入：");
-
+  
     if (!isLogin) {
       list.innerHTML = `
         <div class="text-center py-4">
