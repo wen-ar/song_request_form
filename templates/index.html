@@ -26,14 +26,6 @@
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
     }
 
-    @media (min-width: 992px) {
-      .navbar .container-fluid {
-        flex-wrap: nowrap !important;
-        justify-content: space-between;
-      }
-      .navbar-toggler { display: none; }
-    }
-
     .navbar-brand {
       color: #2e7d32 !important;
       font-weight: 800 !important;
@@ -41,19 +33,26 @@
       letter-spacing: -0.5px;
     }
 
-    .nav-btn-custom {
+    .nav-btn-custom, #loginModal .btn, .offcanvas-body .btn {
       min-width: 90px;
       height: 38px;
       font-weight: 600 !important;
       border-radius: 12px !important;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      padding: 0 12px;
+      align-items: center;      /* 垂直居中 */
+      justify-content: center;   /* 水平居中 */
+      padding: 0 15px;
       line-height: 1;
       vertical-align: middle;
       padding-top: 1px;
+    }
+
+    #loginModal .btn, .offcanvas-body .btn {
+      height: 55px; 
+      border-radius: 16px !important;
+      width: 100%;
+      font-size: 1.1rem;
     }
 
     .btn-warning.nav-btn-custom {
@@ -83,11 +82,19 @@
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
     }
 
-    body.festival-mode .btn-primary {
-      background: linear-gradient(135deg, #66bb6a 0%, #ec407a 100%) !important;
+    body.festival-mode .btn-primary, 
+    body.festival-mode #loginModal .btn-primary {
+      background: linear-gradient(135deg, #42a5f5 0%, #1976d2 100%) !important;
       border: none !important;
       color: white !important;
-      box-shadow: 0 4px 15px rgba(236, 64, 122, 0.2);
+      box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3) !important;
+    }
+
+    body.festival-mode #loginModal .btn-danger {
+      background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%) !important;
+      border: none !important;
+      color: white !important;
+      box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3) !important;
     }
 
     .festival-title { transition: transform 0.3s; }
@@ -104,6 +111,15 @@
       border: 1px solid rgba(255, 255, 255, 0.4);
       border-radius: 24px !important;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    .offcanvas { 
+      width: 280px !important; 
+      z-index: 1060 !important;
+    }
+
+    .offcanvas-backdrop {
+      z-index: 1055 !important;
     }
 
     @media (max-width: 991.98px) {
@@ -125,11 +141,6 @@
         border-radius: 22px !important;
         font-size: 1.4rem !important;
         box-shadow: 0 12px 24px rgba(236, 64, 122, 0.3) !important;
-      }
-
-      .offcanvas { 
-        width: 280px !important; 
-        z-index: 1055 !important;
       }
     }
 
