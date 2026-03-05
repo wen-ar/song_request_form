@@ -333,16 +333,22 @@
   <script>
     const switchD = document.getElementById('festivalSwitchDesktop');
     const switchM = document.getElementById('festivalSwitch');
+    const offcanvasEl = document.getElementById('offcanvasNav');
 
     function syncSwitches(state) {
       if (switchD) switchD.checked = state;
       if (switchM) switchM.checked = state;
     }
 
+    function hideSidebar() {
+      const instance = bootstrap.Offcanvas.getInstance(offcanvasEl);
+      if (instance) instance.hide();
+    }
+    window.hideSidebar = hideSidebar;
+
     function initFestivalEffect() {
       const savedPref = localStorage.getItem('festivalEnabled');
       const shouldEnable = (savedPref === null) ? true : (savedPref === 'true');
-
       syncSwitches(shouldEnable);
       applyFestivalMode(shouldEnable);
     }
@@ -354,24 +360,15 @@
         syncSwitches(isEnabled);
         localStorage.setItem('festivalEnabled', isEnabled);
         applyFestivalMode(isEnabled);
-        if (isEnabled) {
-          setTimeout(() => {
-            location.reload();
-          }, 150);
-        }
+        if (isEnabled) setTimeout(() => location.reload(), 150);
       });
     });
 
     function applyFestivalMode(enable) {
       const canvas = document.getElementById('festival-canvas');
-      if (enable) {
-        document.body.classList.add('festival-mode');
-        if (canvas) canvas.style.display = 'block';
-        if (typeof startParticles === "function") startParticles();
-      } else {
-        document.body.classList.remove('festival-mode');
-        if (canvas) canvas.style.display = 'none';
-      }
+      document.body.classList.toggle('festival-mode', enable);
+      if (canvas) canvas.style.display = enable ? 'block' : 'none';
+      if (enable && typeof startParticles === "function") startParticles();
     }
 
     function startParticles() {
@@ -683,6 +680,7 @@
   const editModal = new bootstrap.Modal(document.getElementById('editModal'));
    
   function fetchHistory() {
+    hideSidebar();
     const offcanvasEl = document.getElementById('offcanvasNav');
     const instance = bootstrap.Offcanvas.getInstance(offcanvasEl);
     if (instance) {
