@@ -134,7 +134,20 @@
     <div class="container-fluid">
       <a class="navbar-brand" href="{{ url_for('index') }}">線上點歌表單</a>
 
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNav">
+      <div class="d-none d-lg-flex align-items-center gap-2">
+        <button class="btn btn-outline-primary btn-sm nav-btn-custom" onclick="fetchHistory()">我的紀錄</button>
+        {% if session.get("user") %}
+          <span class="navbar-text small me-2">{{ session["user"].get("email") }}</span>
+          {% if session["user"]["email"] in ADMIN_EMAILS %}
+            <a href="{{ url_for('admin_page') }}" class="btn btn-warning btn-sm nav-btn-custom">管理</a>
+          {% endif %}
+          <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-sm nav-btn-custom">登出</a>
+        {% else %}
+          <a href="#" class="btn btn-primary btn-sm nav-btn-custom" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
+        {% endif %}
+      </div>
+
+      <button class="navbar-toggler border-0 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNav">
         <span class="navbar-toggler-icon"></span>
       </button>
     </div>
@@ -146,14 +159,17 @@
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body">
-      <div class="d-flex flex-column gap-4">
-        <div class="form-check form-switch fs-4">
+      <div class="d-flex flex-column gap-3">
+        <div class="form-check form-switch fs-4 mb-2">
           <input class="form-check-input" type="checkbox" id="festivalSwitch">
           <label class="form-check-label" for="festivalSwitch">節慶模式</label>
         </div>
         <button class="btn btn-primary btn-lg py-3" onclick="fetchHistory()">我的紀錄</button>
         {% if session.get("user") %}
-          <div class="text-muted text-center small">{{ session["user"].get("email") }}</div>
+          <div class="text-muted text-center small mb-2">{{ session["user"].get("email") }}</div>
+          {% if session["user"]["email"] in ADMIN_EMAILS %}
+            <a href="{{ url_for('admin_page') }}" class="btn btn-warning btn-lg py-3">管理後台</a>
+          {% endif %}
           <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary btn-lg py-3">登出</a>
         {% else %}
           <a href="#" class="btn btn-primary btn-lg py-3" data-bs-toggle="modal" data-bs-target="#loginModal">登入</a>
