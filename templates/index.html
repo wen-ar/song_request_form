@@ -304,7 +304,6 @@
     function initFestivalEffect() {
       const savedPref = localStorage.getItem('festivalEnabled');
       const shouldEnable = (savedPref === null) ? true : (savedPref === 'true');
-
       if (festivalSwitch) {
         festivalSwitch.checked = shouldEnable;
       }
@@ -315,30 +314,27 @@
       festivalSwitch.addEventListener('change', (e) => {
         const isEnabled = e.target.checked;
         applyFestivalMode(isEnabled);
-        if (isEnabled) setTimeout(() => location.reload(), 150);
+        localStorage.setItem('festivalEnabled', isEnabled);
+
+        if (isEnabled) {
+          setTimeout(() => {
+            location.reload();
+          }, 150);
+        }
       });
     }
 
     function applyFestivalMode(enable) {
+      const canvas = document.getElementById('festival-canvas');
       if (enable) {
         document.body.classList.add('festival-mode');
-        document.getElementById('festival-canvas').style.display = 'block';
-        startParticles();
+        if (canvas) canvas.style.display = 'block';
+        if (typeof startParticles === "function") startParticles();
       } else {
         document.body.classList.remove('festival-mode');
-        document.getElementById('festival-canvas').style.display = 'none';
+        if (canvas) canvas.style.display = 'none';
       }
-      localStorage.setItem('festivalEnabled', enable);
     }
-
-    festivalSwitch.addEventListener('change', (e) => {
-      const isEnabled = e.target.checked;
-      applyFestivalMode(isEnabled);
-
-      if (isEnabled) {
-        location.reload();
-      }
-    });
 
     function startParticles() {
       const canvas = document.getElementById('festival-canvas');
