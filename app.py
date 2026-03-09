@@ -519,19 +519,24 @@ def delete_all_songs():
 # ======================
 @app.route("/results")
 def get_results():
-    gender = request.args.get("gender")
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
-    if gender:
-        cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE gender = ? ORDER BY id", (gender,))
+    results = []
+
+    if session.get("user"):
+        email = session["user"].get("email")
+        cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? ORDER BY id", (email,))
     else:
-        cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs ORDER BY id")
+        name = request.args.get("name")
+        if not name:
+            conn.close()
+            return jsonify({"error": "未登入者必須提供姓名"}), 403
+        cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE name = ? ORDER BY id", (name,))
 
     rows = cursor.fetchall()
     conn.close()
 
-    results = []
     for i, row in enumerate(rows, start=1):
         results.append({
             "index": i,
