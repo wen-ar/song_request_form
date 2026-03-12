@@ -84,11 +84,17 @@
 
     body.festival-mode .btn-primary, 
     body.festival-mode #loginModal .btn-primary {
-      background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%) !important;
-      border: none !important;
-      color: white !important;
+      background: linear-gradient(135deg, #FFFAF0 0%, #F5E6BE 100%) !important;
+      border: 1px solid rgba(184, 134, 11, 0.2) !important;
+      color: #8B7355 !important;
       font-weight: 700 !important;
-      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4) !important;
+      box-shadow: 0 4px 15px rgba(218, 165, 32, 0.1) !important;
+      transition: all 0.3s ease;
+    }
+    body.festival-mode .btn-primary:hover {
+      background: linear-gradient(135deg, #F5E6BE 0%, #FFFAF0 100%) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(218, 165, 32, 0.15) !important;
     }
 
     body.festival-mode #loginModal .btn-danger {
