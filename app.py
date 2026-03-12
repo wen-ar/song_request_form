@@ -63,6 +63,7 @@ def login_microsoft():
 def login_google():
     redirect_uri = url_for("authorize_google", _external=True, _scheme="https")
     return google.authorize_redirect(redirect_uri)
+    
 @app.route("/login/callback/microsoft")
 def authorize_microsoft():
     try:
@@ -72,6 +73,19 @@ def authorize_microsoft():
         if "userPrincipalName" in user_info:
             user_info["email"] = user_info["userPrincipalName"]
         session["user"] = user_info
+
+        email = session["user"].get("email")
+        name = session["user"].get("displayName") or session["user"].get("name")
+        if email and name:
+            conn = sqlite3.connect("database.db")
+            cur = conn.cursor()
+            cur.execute(
+                "UPDATE songs SET email = ? WHERE name = ? AND (email IS NULL OR email = '' OR email = '無')",
+                (email, name)
+            )
+            conn.commit()
+            conn.close()
+            
         return redirect(url_for("index"))
     except Exception as e:
         return f"登入失敗：{str(e)}"
@@ -81,6 +95,19 @@ def authorize_google():
     token = google.authorize_access_token()
     user_info = google.get("https://www.googleapis.com/oauth2/v1/userinfo").json()
     session["user"] = user_info
+
+    email = session["user"].get("email")
+    name = session["user"].get("name")
+    if email and name:
+        conn = sqlite3.connect("database.db")
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE songs SET email = ? WHERE name = ? AND (email IS NULL OR email = '' OR email = '無')",
+            (email, name)
+        )
+        conn.commit()
+        conn.close()
+        
     return redirect(url_for("index"))
 
 # ======================
@@ -526,13 +553,22 @@ def get_results():
 
     if session.get("user"):
         email = session["user"].get("email")
-        cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? ORDER BY id", (email,))
+        name = session["user"].get("name") or session["user"].get("displayName")
+
+        # ✅ 同時查詢 email + name (方案 B)
+        cursor.execute(
+            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? OR name = ? ORDER BY id",
+            (email, name)
+        )
     else:
         name = request.args.get("name")
         if not name:
             conn.close()
             return jsonify({"error": "未登入者必須提供姓名"}), 403
-        cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE name = ? ORDER BY id", (name,))
+        cursor.execute(
+            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE name = ? ORDER BY id",
+            (name,)
+        )
 
     rows = cursor.fetchall()
     conn.close()
