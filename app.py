@@ -556,7 +556,6 @@ def get_results():
                 (email, name)
             )
     else:
-        # 未登入者必須提供姓名
         name = request.args.get("name")
         if not name:
             conn.close()
