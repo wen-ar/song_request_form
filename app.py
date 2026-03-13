@@ -23,7 +23,7 @@ spotify_token = None
 spotify_token_expiry = 0
 
 app = Flask(__name__)
-app.secret_key = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"  # 用於 session
+app.secret_key = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 app.permanentsessionlifetime = timedelta(days=7)
 
 # 管理員清單
@@ -293,7 +293,6 @@ def submit():
 # ======================
 @app.route("/update/<int:song_id>", methods=["POST"])
 def update_song(song_id):
-    # 1. 截止時間檢查
     config = load_config()
     if config.get("deadline"):
         try:
@@ -306,7 +305,7 @@ def update_song(song_id):
     data = request.json
     new_song = data.get("songName")
     new_link = data.get("songLink")
-    form_name = data.get("name") # 接收前端傳來的姓名
+    form_name = data.get("name")
 
     if not new_song or not new_link:
         return jsonify({"error": "內容不可為空"}), 400
@@ -314,7 +313,6 @@ def update_song(song_id):
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
 
-    # 2. 抓取原始紀錄比對身分
     cur.execute("SELECT name, email FROM songs WHERE id = ?", (song_id,))
     row = cur.fetchone()
     if not row:
@@ -324,16 +322,13 @@ def update_song(song_id):
     db_name, db_email = row
     can_edit = False
 
-    # 3. 身分驗證邏輯
     if session.get("user"):
         current_user_email = session["user"].get("email")
         if db_email == current_user_email:
             can_edit = True
-        # 處理未登入點的歌：如果紀錄沒 Email 且姓名相符
         elif (not db_email or db_email == "無" or db_email == "") and db_name == form_name:
             can_edit = True
     else:
-        # 完全未登入：純比對姓名
         if db_name == form_name:
             can_edit = True
 
@@ -341,7 +336,6 @@ def update_song(song_id):
         conn.close()
         return jsonify({"error": "身分驗證失敗，您無權修改此紀錄"}), 403
 
-    # 4. 執行更新 (如果有登入，順便補上 email 歸戶)
     final_email = session["user"].get("email") if session.get("user") else db_email
     
     try:
@@ -548,19 +542,21 @@ def delete_all_songs():
 def get_results():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
-
     results = []
 
     if session.get("user"):
         email = session["user"].get("email")
         name = session["user"].get("name") or session["user"].get("displayName")
 
-        # ✅ 同時查詢 email + name (方案 B)
-        cursor.execute(
-            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? OR name = ? ORDER BY id",
-            (email, name)
-        )
+        if email in ADMIN_EMAILS:
+            cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs ORDER BY id")
+        else:
+            cursor.execute(
+                "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? OR name = ? ORDER BY id",
+                (email, name)
+            )
     else:
+        # 未登入者必須提供姓名
         name = request.args.get("name")
         if not name:
             conn.close()
