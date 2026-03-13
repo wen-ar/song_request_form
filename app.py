@@ -548,13 +548,10 @@ def get_results():
         email = session["user"].get("email")
         name = session["user"].get("name") or session["user"].get("displayName")
 
-        if email in ADMIN_EMAILS:
-            cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs ORDER BY id")
-        else:
-            cursor.execute(
-                "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? OR name = ? ORDER BY id",
-                (email, name)
-            )
+        cursor.execute(
+            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? OR name = ? ORDER BY id",
+            (email, name)
+        )
     else:
         name = request.args.get("name")
         if not name:
@@ -568,6 +565,31 @@ def get_results():
     rows = cursor.fetchall()
     conn.close()
 
+    for i, row in enumerate(rows, start=1):
+        results.append({
+            "index": i,
+            "id": row[0],
+            "name": row[1],
+            "gender": row[2],
+            "song": row[3],
+            "link": row[4],
+            "timestamp": row[5],
+            "email": row[6] if row[6] else "無"
+        })
+    return jsonify(results)
+
+@app.route("/admin_results")
+def admin_results():
+    if not session.get("user") or session["user"].get("email") not in ADMIN_EMAILS:
+        return jsonify({"error": "您沒有管理員權限"}), 403
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs ORDER BY id")
+    rows = cursor.fetchall()
+    conn.close()
+
+    results = []
     for i, row in enumerate(rows, start=1):
         results.append({
             "index": i,
