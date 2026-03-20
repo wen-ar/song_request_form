@@ -617,18 +617,7 @@ def admin_results():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
-        return """
-        <form method="POST">
-            <label>顯示名稱：</label>
-            <input type="text" name="display_name" required><br>
-            <label>性別：</label>
-            <select name="gender">
-                <option value="男">男</option>
-                <option value="女">女</option>
-            </select><br>
-            <button type="submit">註冊</button>
-        </form>
-        """
+        return render_template("register.html")
 
     email = session["user"].get("email")
     display_name = request.form.get("display_name")
