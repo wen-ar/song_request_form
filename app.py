@@ -86,6 +86,9 @@ def authorize_microsoft():
             conn.commit()
             conn.close()
             
+            if not user:
+                return redirect(url_for("register"))
+            
         return redirect(url_for("index"))
     except Exception as e:
         return f"登入失敗：{str(e)}"
@@ -109,6 +112,9 @@ def authorize_google():
         )
         conn.commit()
         conn.close()
+        
+        if not user:
+            return redirect(url_for("register"))
         
     return redirect(url_for("index"))
 
@@ -171,7 +177,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-init_db()
+init_user_db()
 
 # ======================
 # 載入設定檔
@@ -548,11 +554,10 @@ def get_results():
 
     if session.get("user"):
         email = session["user"].get("email")
-        name = session["user"].get("name") or session["user"].get("displayName")
 
         cursor.execute(
-            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? OR name = ? ORDER BY id",
-            (email, name)
+            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? ORDER BY id",
+            (email,)
         )
     else:
         name = request.args.get("name")
@@ -604,6 +609,47 @@ def admin_results():
             "email": row[6] if row[6] else "無"
         })
     return jsonify(results)
+    
+# ======================
+# 註冊
+# ======================
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "GET":
+        return """
+        <form method="POST">
+            <label>顯示名稱：</label>
+            <input type="text" name="display_name" required><br>
+            <label>性別：</label>
+            <select name="gender">
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select><br>
+            <button type="submit">註冊</button>
+        </form>
+        """
+
+    email = session["user"].get("email")
+    display_name = request.form.get("display_name")
+    gender = request.form.get("gender")
+
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO users (email, display_name, gender) VALUES (?, ?, ?)",
+        (email, display_name, gender)
+    )
+    conn.commit()
+
+    cur.execute(
+        "UPDATE songs SET email = ? WHERE name = ? AND (email IS NULL OR email = '' OR email = '無')",
+        (email, display_name)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("index"))
 
 # ======================
 # 搜尋 ID
