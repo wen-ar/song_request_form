@@ -160,7 +160,7 @@ def safe_spotify_request(url, headers, params=None):
 # ======================
 # SQLite 初始化
 # ======================
-def init_db():
+def init_user_db():
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
     cur.execute("""
