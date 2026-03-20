@@ -98,12 +98,14 @@ def authorize_google():
 
     email = session["user"].get("email")
     name = session["user"].get("name")
+
     if email and name:
+        normalized_name = name.strip().lower()  # 標準化名字
         conn = sqlite3.connect("database.db")
         cur = conn.cursor()
         cur.execute(
-            "UPDATE songs SET email = ? WHERE name = ? AND (email IS NULL OR email = '' OR email = '無')",
-            (email, name)
+            "UPDATE songs SET email = ? WHERE LOWER(TRIM(name)) = ? AND (email IS NULL OR email = '' OR email = '無')",
+            (email, normalized_name)
         )
         conn.commit()
         conn.close()
