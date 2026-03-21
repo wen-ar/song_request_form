@@ -70,28 +70,28 @@ def authorize_microsoft():
         token = microsoft.authorize_access_token()
         user_info = microsoft.get("https://graph.microsoft.com/v1.0/me").json()
         session.permanent = True
+        
         if "userPrincipalName" in user_info:
             user_info["email"] = user_info["userPrincipalName"]
         session["user"] = user_info
 
-        email = session["user"].get("email")
-        name = session["user"].get("displayName") or session["user"].get("name")
+        email = user_info.get("email")
+        name = user_info.get("displayName")
 
         if email and name:
             conn = sqlite3.connect("database.db")
             cur = conn.cursor()
             cur.execute(
-                "UPDATE songs SET email = ? WHERE name = ? AND (email IS NULL OR email = '' OR email = '無')",
+                """
+                UPDATE songs 
+                SET email = ? 
+                WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) 
+                AND (email IS NULL OR email = '' OR email = '無')
+                """,
                 (email, name)
             )
             conn.commit()
-
-            cur.execute("SELECT * FROM users WHERE email = ?", (email,))
-            user = cur.fetchone()
             conn.close()
-
-            if not user:
-                return redirect(url_for("register"))
 
         return redirect(url_for("index"))
     except Exception as e:
@@ -103,25 +103,23 @@ def authorize_google():
     user_info = google.get("https://www.googleapis.com/oauth2/v1/userinfo").json()
     session["user"] = user_info
 
-    email = session["user"].get("email")
-    name = session["user"].get("name")
+    email = user_info.get("email")
+    name = user_info.get("name")
 
     if email and name:
-        normalized_name = name.strip().lower()  # 標準化名字
         conn = sqlite3.connect("database.db")
         cur = conn.cursor()
         cur.execute(
-            "UPDATE songs SET email = ? WHERE LOWER(TRIM(name)) = ? AND (email IS NULL OR email = '' OR email = '無')",
-            (email, normalized_name)
+            """
+            UPDATE songs 
+            SET email = ? 
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) 
+            AND (email IS NULL OR email = '' OR email = '無')
+            """,
+            (email, name)
         )
         conn.commit()
-
-        cur.execute("SELECT * FROM users WHERE email = ?", (email,))
-        user = cur.fetchone()
         conn.close()
-
-        if not user:
-            return redirect(url_for("register"))
 
     return redirect(url_for("index"))
 
