@@ -104,25 +104,29 @@ def authorize_google():
     session["user"] = user_info
 
     email = user_info.get("email")
-    name = user_info.get("name") 
+    full_name = user_info.get("name", "")
+    given_name = user_info.get("given_name", "")
+    family_name = user_info.get("family_name", "")
 
-    print(f"DEBUG: Google Login - Email: {email}, Name: {name}")
-
-    if email and name:
+    if email and full_name:
         conn = sqlite3.connect("database.db")
         cur = conn.cursor()
-
+        
         cur.execute(
             """
             UPDATE songs 
             SET email = ? 
-            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) 
+            WHERE (
+                LOWER(TRIM(name)) = LOWER(TRIM(?)) OR 
+                ? LIKE '%' || name || '%' OR
+                name LIKE '%' || ? || '%'
+            )
             AND (email IS NULL OR email = '' OR email = '無')
             """,
-            (email, name)
+            (email, full_name, full_name, given_name if given_name else full_name)
         )
         updated_rows = cur.rowcount
-        print(f"DEBUG: 自動歸戶更新了 {updated_rows} 筆資料")
+        print(f"DEBUG: Google 自動歸戶更新了 {updated_rows} 筆資料")
         
         conn.commit()
         conn.close()
