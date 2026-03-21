@@ -168,7 +168,6 @@ def safe_spotify_request(url, headers, params=None):
 def init_db():
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS songs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -180,9 +179,10 @@ def init_db():
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
-
     conn.commit()
     conn.close()
+
+init_db()
     
 # ======================
 # 載入設定檔
@@ -614,45 +614,6 @@ def admin_results():
             "email": row[6] if row[6] else "無"
         })
     return jsonify(results)
-    
-# ======================
-# 註冊
-# ======================
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "GET":
-        return render_template("register.html")
-
-    email = session["user"].get("email")
-    display_name = request.form.get("display_name").strip()
-    gender = request.form.get("gender")
-
-    conn = sqlite3.connect("database.db")
-    cur = conn.cursor()
-    
-    try:
-        cur.execute(
-            "INSERT OR IGNORE INTO users (email, display_name, gender) VALUES (?, ?, ?)",
-            (email, display_name, gender)
-        )
-        
-        cur.execute(
-            """
-            UPDATE songs 
-            SET email = ? 
-            WHERE (LOWER(TRIM(name)) = LOWER(TRIM(?))) 
-            AND (email IS NULL OR email = '' OR email = '無')
-            """,
-            (email, display_name)
-        )
-        conn.commit()
-    except Exception as e:
-        print(f"註冊歸戶失敗: {e}")
-        conn.rollback()
-    finally:
-        conn.close()
-
-    return redirect(url_for("index"))
 
 # ======================
 # 搜尋 ID
