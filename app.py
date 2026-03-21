@@ -637,23 +637,33 @@ def register():
         return render_template("register.html")
 
     email = session["user"].get("email")
-    display_name = request.form.get("display_name")
+    display_name = request.form.get("display_name").strip()
     gender = request.form.get("gender")
 
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO users (email, display_name, gender) VALUES (?, ?, ?)",
-        (email, display_name, gender)
-    )
-    conn.commit()
-
-    cur.execute(
-        "UPDATE songs SET email = ? WHERE name = ? AND (email IS NULL OR email = '' OR email = '無')",
-        (email, display_name)
-    )
-    conn.commit()
-    conn.close()
+    
+    try:
+        cur.execute(
+            "INSERT OR IGNORE INTO users (email, display_name, gender) VALUES (?, ?, ?)",
+            (email, display_name, gender)
+        )
+        
+        cur.execute(
+            """
+            UPDATE songs 
+            SET email = ? 
+            WHERE (LOWER(TRIM(name)) = LOWER(TRIM(?))) 
+            AND (email IS NULL OR email = '' OR email = '無')
+            """,
+            (email, display_name)
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"註冊歸戶失敗: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
 
     return redirect(url_for("index"))
 
