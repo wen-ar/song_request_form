@@ -100,15 +100,18 @@ def authorize_microsoft():
 @app.route("/authorize/google")
 def authorize_google():
     token = google.authorize_access_token()
-    user_info = google.get("https://www.googleapis.com/oauth2/v1/userinfo").json()
+    user_info = google.get("https://www.googleapis.com/oauth2/v3/userinfo").json()
     session["user"] = user_info
 
     email = user_info.get("email")
-    name = user_info.get("name")
+    name = user_info.get("name") 
+
+    print(f"DEBUG: Google Login - Email: {email}, Name: {name}")
 
     if email and name:
         conn = sqlite3.connect("database.db")
         cur = conn.cursor()
+
         cur.execute(
             """
             UPDATE songs 
@@ -118,6 +121,9 @@ def authorize_google():
             """,
             (email, name)
         )
+        updated_rows = cur.rowcount
+        print(f"DEBUG: 自動歸戶更新了 {updated_rows} 筆資料")
+        
         conn.commit()
         conn.close()
 
