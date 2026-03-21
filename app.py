@@ -76,6 +76,7 @@ def authorize_microsoft():
 
         email = session["user"].get("email")
         name = session["user"].get("displayName") or session["user"].get("name")
+
         if email and name:
             conn = sqlite3.connect("database.db")
             cur = conn.cursor()
@@ -84,11 +85,14 @@ def authorize_microsoft():
                 (email, name)
             )
             conn.commit()
+
+            cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+            user = cur.fetchone()
             conn.close()
-            
+
             if not user:
                 return redirect(url_for("register"))
-            
+
         return redirect(url_for("index"))
     except Exception as e:
         return f"登入失敗：{str(e)}"
@@ -111,11 +115,14 @@ def authorize_google():
             (email, normalized_name)
         )
         conn.commit()
+
+        cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+        user = cur.fetchone()
         conn.close()
-        
+
         if not user:
             return redirect(url_for("register"))
-        
+
     return redirect(url_for("index"))
 
 # ======================
@@ -164,14 +171,12 @@ def init_user_db():
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS songs (
+        CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            gender TEXT NOT NULL,
-            song TEXT NOT NULL,
-            link TEXT NOT NULL,
-            email TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            email TEXT UNIQUE NOT NULL,
+            display_name TEXT,
+            gender TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
@@ -613,7 +618,6 @@ def admin_results():
 # ======================
 # 註冊
 # ======================
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
