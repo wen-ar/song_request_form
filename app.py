@@ -167,9 +167,22 @@ def safe_spotify_request(url, headers, params=None):
 # ======================
 # SQLite 初始化
 # ======================
-def init_user_db():
+def init_db():
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS songs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            gender TEXT NOT NULL,
+            song TEXT NOT NULL,
+            link TEXT NOT NULL,
+            email TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -179,11 +192,11 @@ def init_user_db():
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
     conn.commit()
     conn.close()
 
-init_user_db()
-
+init_db()
 # ======================
 # 載入設定檔
 # ======================
