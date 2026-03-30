@@ -112,7 +112,7 @@
     }
 
     .modal-content {
-      background: rgba(255, 255, 255, 0.75) !important;
+      background: rgba(255, 255, 255, 0.65) !important;
       backdrop-filter: blur(25px);
       -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.4);
@@ -535,7 +535,7 @@
             a.className = "list-group-item list-group-item-action d-flex align-items-center gap-3 py-2";
             a.href = "#";
             a.innerHTML = `
-              <img src="${item.image || 'https://via.placeholder.com/40'}" alt="cover" style="width:45px; height:45px; border-radius:8px; object-fit:cover;">
+              <img src="${item.cover || 'https://via.placeholder.com/40'}" alt="cover" style="width:45px; height:45px; border-radius:8px; object-fit:cover;">
               <div class="text-truncate">
                 <div class="fw-bold text-dark" style="font-size:0.95rem;">${item.name}</div>
                 <div class="text-muted" style="font-size:0.8rem;">${item.artist}</div>
