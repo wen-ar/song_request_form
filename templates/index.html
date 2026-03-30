@@ -40,8 +40,8 @@
       border-radius: 12px !important;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       display: inline-flex !important;
-      align-items: center;      /* 垂直居中 */
-      justify-content: center;   /* 水平居中 */
+      align-items: center;
+      justify-content: center;
       padding: 0 15px;
       line-height: 1;
       vertical-align: middle;
@@ -112,7 +112,7 @@
     }
 
     .modal-content {
-      background: rgba(255, 255, 255, 0.5) !important;
+      background: rgba(255, 255, 255, 0.75) !important;
       backdrop-filter: blur(25px);
       -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.4);
@@ -532,11 +532,15 @@
           box.innerHTML = "";
           data.forEach((item, idx) => {
             const a = document.createElement("a");
-            a.className = "list-group-item list-group-item-action";
-            a.setAttribute("role", "option");
-            a.setAttribute("id", "suggestion-" + idx);
-            a.innerHTML = `<strong>${item.name}</strong> - ${item.artist}`;
+            a.className = "list-group-item list-group-item-action d-flex align-items-center gap-3 py-2";
             a.href = "#";
+            a.innerHTML = `
+              <img src="${item.image || 'https://via.placeholder.com/40'}" alt="cover" style="width:45px; height:45px; border-radius:8px; object-fit:cover;">
+              <div class="text-truncate">
+                <div class="fw-bold text-dark" style="font-size:0.95rem;">${item.name}</div>
+                <div class="text-muted" style="font-size:0.8rem;">${item.artist}</div>
+              </div>
+            `;
             a.onclick = (e) => {
               e.preventDefault();
               document.getElementById("songName").value = item.name;
@@ -546,9 +550,7 @@
             box.appendChild(a);
           });
         })
-        .catch(err => {
-          console.error("搜尋建議錯誤：", err);
-        });
+        .catch(err => console.error("搜尋建議錯誤：", err));
     });
 
     // 通知顯示
@@ -592,7 +594,6 @@
     function setupEditSearch() {
       const editInput = document.getElementById('editSongName');
       const editSuggest = document.getElementById('editSongSuggestions');
-      const editLink = document.getElementById('editSongLink');
 
       editInput.addEventListener('input', function() {
         const query = this.value.trim();
@@ -605,16 +606,15 @@
           .then(res => res.json())
           .then(data => {
             editSuggest.innerHTML = data.map(track => `
-              <button type="button" class="list-group-item list-group-item-action py-2" 
-                onclick="selectTrackForEdit(\`${track.name.replace(/'/g, "\\'")} - ${track.artist.replace(/'/g, "\\'")}\`, '${track.url}')">
-                <div class="d-flex align-items-center">
-                  <div>
-                    <div class="small fw-bold">${track.name}</div>
-                    <div class="text-muted" style="font-size:0.75rem;">${track.artist}</div>
-                  </div>
+              <button type="button" class="list-group-item list-group-item-action py-2 d-flex align-items-center gap-3" 
+                onclick="selectTrackForEdit(\`${track.name.replace(/'/g, "\\'")} - ${track.artist.replace(/'/g, "\\")}\`, '${track.url}')">
+                <img src="${track.image || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;">
+                <div class="text-start text-truncate">
+                  <div class="small fw-bold">${track.name}</div>
+                  <div class="text-muted" style="font-size:0.75rem;">${track.artist}</div>
                 </div>
               </button>
-            `).join('');
+           `).join('');
           })
           .catch(err => console.error("搜尋錯誤:", err));
       });
