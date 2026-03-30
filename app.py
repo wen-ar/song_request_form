@@ -185,6 +185,7 @@ def init_db():
             gender TEXT NOT NULL,
             song TEXT NOT NULL,
             link TEXT NOT NULL,
+            duration TEXT,
             email TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -274,6 +275,11 @@ def submit():
     gender = data.get("gender")
     song = data.get("songName")
     link = data.get("songLink")
+    
+    duration_ms = data.get("duration", 0) 
+    minutes = duration_ms // 60000
+    seconds = (duration_ms % 60000) // 1000
+    duration_str = f"{minutes}:{seconds:02d}" 
 
     if not all([name, gender, song, link]):
         return jsonify({"error": "欄位不可為空"}), 400
@@ -307,10 +313,12 @@ def submit():
     email = session["user"]["email"] if session.get("user") else None
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
+    
     cur.execute(
-        "INSERT INTO songs (name, gender, song, link, email, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
-        (name, gender, song, link, email, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        "INSERT INTO songs (name, gender, song, link, duration, email, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (name, gender, song, link, duration_str, email, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     )
+    
     conn.commit()
     conn.close()
 
@@ -484,7 +492,7 @@ def reset_ids():
 def export():
     conn = sqlite3.connect("database.db")
     df = pd.read_sql_query(
-        "SELECT id AS ID, name AS 姓名, gender AS 性別, email AS Email, song AS 歌名, link AS 歌曲連結, timestamp AS 填寫時間 FROM songs",
+        "SELECT id AS ID, name AS 姓名, gender AS 性別, email AS Email, song AS 歌名, duration AS 歌曲時長, link AS 歌曲連結, timestamp AS 填寫時間 FROM songs",
         conn
     )
     conn.close()
