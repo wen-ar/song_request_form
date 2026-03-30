@@ -238,14 +238,19 @@ def search():
 
     results = []
     for item in data.get("tracks", {}).get("items", []):
+        images = item.get("album", {}).get("images", [])
+        cover_url = images[1]["url"] if len(images) > 1 else (images[0]["url"] if images else "")
+
         results.append({
             "name": item["name"],
             "artist": item["artists"][0]["name"],
-            "url": item["external_urls"]["spotify"]
+            "url": item["external_urls"]["spotify"],
+            "cover": cover_url,
+            "duration": item.get("duration_ms", 0)
         })
 
     return jsonify(results)
-
+    
 # ======================
 # 表單提交
 # ======================
