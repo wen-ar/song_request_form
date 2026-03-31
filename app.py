@@ -26,8 +26,6 @@ def get_db_connection():
     )
 
 app = Flask(__name__)
-with app.app_context():
-    init_db()
 
 CLIENT_ID = "c96951bf51d74a4b87ceb1f7dc6a0fea"
 CLIENT_SECRET = "1ebde6feea114d2ca5512c5af5eae6b0"
@@ -38,6 +36,9 @@ spotify_token_expiry = 0
 app = Flask(__name__)
 app.secret_key = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 app.permanentsessionlifetime = timedelta(days=7)
+
+with app.app_context():
+    init_db()
 
 # 管理員清單
 ADMIN_EMAILS = ["huiyingl936@gmail.com", "S0702265@o365.kh.edu.tw", "lynnn0215@gmail.com"]
