@@ -95,8 +95,8 @@ def authorize_microsoft():
             cur.execute(
                 """
                 UPDATE songs 
-                SET email = ? 
-                WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) 
+                SET email = %s
+                WHERE LOWER(TRIM(name)) = LOWER(TRIM(%s)) 
                 AND (email IS NULL OR email = '' OR email = '無')
                 """,
                 (email, name)
@@ -126,9 +126,9 @@ def authorize_google():
         cur.execute(
             """
             UPDATE songs 
-            SET email = ? 
+            SET email = %s
             WHERE (
-                LOWER(TRIM(name)) = LOWER(TRIM(?)) OR 
+                LOWER(TRIM(name)) = LOWER(TRIM(%s)) OR 
                 ? LIKE '%' || name || '%' OR
                 name LIKE '%' || ? || '%'
             )
@@ -316,7 +316,7 @@ def submit():
 
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM songs WHERE song = ? AND link = ?", (song, link))
+    cur.execute("SELECT COUNT(*) FROM songs WHERE song = %s AND link = %s", (song, link))
     duplicate_count = cur.fetchone()[0]
     if duplicate_count > 0:
         conn.close()
@@ -328,7 +328,7 @@ def submit():
     cur = conn.cursor()
     
     cur.execute(
-        "INSERT INTO songs (name, gender, song, link, duration, email, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO songs (name, gender, song, link, duration, email, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s)",
         (name, gender, song, link, duration_str, email, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     )
     
@@ -362,7 +362,7 @@ def update_song(song_id):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT name, email FROM songs WHERE id = ?", (song_id,))
+    cur.execute("SELECT name, email FROM songs WHERE id = %s", (song_id,))
     row = cur.fetchone()
     if not row:
         conn.close()
@@ -388,7 +388,7 @@ def update_song(song_id):
     final_email = session["user"].get("email") if session.get("user") else db_email
     
     try:
-        cur.execute("UPDATE songs SET song = ?, link = ?, email = ? WHERE id = ?", 
+        cur.execute("UPDATE songs SET song = %s, link = %s, email = %s WHERE id = %s", 
                     (new_song, new_link, final_email, song_id))
         conn.commit()
         return jsonify({"success": True})
@@ -443,13 +443,13 @@ def status():
     if session.get("user"):
         email = session["user"].get("email")
         cur.execute(
-            "SELECT COUNT(*) FROM songs WHERE email = ? AND gender = ?",
+            "SELECT COUNT(*) FROM songs WHERE email = %s AND gender = %s",
             (email, gender)
         )
 
     elif name:
         cur.execute(
-            "SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?",
+            "SELECT COUNT(*) FROM songs WHERE name = %s AND gender = %s",
             (name, gender)
         )
     else:
@@ -490,7 +490,7 @@ def reset_ids():
 
     for i, row in enumerate(rows, start=1):
         cursor.execute(
-            "INSERT INTO songs (id, name, gender, song, link, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO songs (id, name, gender, song, link, timestamp) VALUES (%s, %s, %s, %s, %s, %s)",
             (i, row[1], row[2], row[3], row[4], row[5])
         )
 
@@ -558,7 +558,7 @@ def delete_song(song_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("DELETE FROM songs WHERE id = ?", (song_id,))
+        cur.execute("DELETE FROM songs WHERE id = %s", (song_id,))
         conn.commit()
         deleted_count = cur.rowcount
         conn.close()
@@ -597,7 +597,7 @@ def get_results():
         email = session["user"].get("email")
 
         cursor.execute(
-            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = ? ORDER BY id",
+            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE email = %s ORDER BY id",
             (email,)
         )
     else:
@@ -606,7 +606,7 @@ def get_results():
             conn.close()
             return jsonify({"error": "未登入者必須提供姓名"}), 403
         cursor.execute(
-            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE name = ? ORDER BY id",
+            "SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE name = %s ORDER BY id",
             (name,)
         )
 
@@ -658,7 +658,7 @@ def admin_results():
 def get_result(song_id):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE id = ?", (song_id,))
+    cur.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE id = %s", (song_id,))
     row = cur.fetchone()
     conn.close()
 
