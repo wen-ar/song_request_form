@@ -241,7 +241,7 @@ def search():
     for item in data.get("tracks", {}).get("items", []):
         images = item.get("album", {}).get("images", [])
         cover_url = images[1]["url"] if len(images) > 1 else (images[0]["url"] if images else "")
-
+        duration_ms = item.get("duration_ms", 0)
         results.append({
             "name": item["name"],
             "artist": item["artists"][0]["name"],
