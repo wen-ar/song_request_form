@@ -26,6 +26,8 @@ def get_db_connection():
     )
 
 app = Flask(__name__)
+with app.app_context():
+    init_db()
 
 CLIENT_ID = "c96951bf51d74a4b87ceb1f7dc6a0fea"
 CLIENT_SECRET = "1ebde6feea114d2ca5512c5af5eae6b0"
