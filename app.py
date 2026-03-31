@@ -13,6 +13,17 @@ from flask import send_file
 import requests
 import time
 import certifi
+import psycopg2
+import os
+
+def get_db_connection():
+    return psycopg2.connect(
+        dbname=os.getenv("PGDATABASE"),
+        user=os.getenv("PGUSER"),
+        password=os.getenv("PGPASSWORD"),
+        host=os.getenv("PGHOST"),
+        port=os.getenv("PGPORT")
+    )
 
 app = Flask(__name__)
 
@@ -79,7 +90,7 @@ def authorize_microsoft():
         name = user_info.get("displayName")
 
         if email and name:
-            conn = sqlite3.connect("database.db")
+            conn = get_db_connection()
             cur = conn.cursor()
             cur.execute(
                 """
@@ -109,7 +120,7 @@ def authorize_google():
     family_name = user_info.get("family_name", "")
 
     if email and full_name:
-        conn = sqlite3.connect("database.db")
+        conn = get_db_connection()
         cur = conn.cursor()
         
         cur.execute(
@@ -176,44 +187,46 @@ def safe_spotify_request(url, headers, params=None):
 # SQLite 初始化
 # ======================
 def init_db():
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS songs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             gender TEXT NOT NULL,
             song TEXT NOT NULL,
             link TEXT NOT NULL,
             duration TEXT,
             email TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            display_name TEXT,
+            gender TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
     conn.close()
-
-init_db()
     
 # ======================
 # 載入設定檔
 # ======================
 def load_config():
-    try:
-        with open("config.json", "r", encoding="utf-8") as f:
-            config = json.load(f)
-    except FileNotFoundError:
-        config = {}
-
-    config.setdefault("accept_responses", True)
-    config.setdefault("deadline", "")
-    config.setdefault("notification_content", "")
-    config.setdefault("version", "1.0.0")
-    config.setdefault("male_limit_enabled", False)
-    config.setdefault("male_limit_count", 0)
-    config.setdefault("female_limit_enabled", False)
-    config.setdefault("female_limit_count", 0)
-
+    config = {
+        "accept_responses": os.getenv("ACCEPT_RESPONSES", "true") == "true",
+        "deadline": os.getenv("DEADLINE", ""),
+        "notification_content": os.getenv("NOTIFICATION_CONTENT", ""),
+        "version": os.getenv("VERSION", "1.0.0"),
+        "male_limit_enabled": os.getenv("MALE_LIMIT_ENABLED", "false") == "true",
+        "male_limit_count": int(os.getenv("MALE_LIMIT_COUNT", "0")),
+        "female_limit_enabled": os.getenv("FEMALE_LIMIT_ENABLED", "false") == "true",
+        "female_limit_count": int(os.getenv("FEMALE_LIMIT_COUNT", "0"))
+    }
     return config
 
 # ======================
@@ -290,7 +303,7 @@ def submit():
     else:
         cur_query = ("SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?", (name, gender))
 
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute(*cur_query)
     count = cur.fetchone()[0]
@@ -301,7 +314,7 @@ def submit():
     if gender == "女" and config.get("female_limit_enabled") and count >= config.get("female_limit_count", 0):
         return jsonify({"error": "你已達女生點歌上限"}), 403
 
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) FROM songs WHERE song = ? AND link = ?", (song, link))
     duplicate_count = cur.fetchone()[0]
@@ -311,7 +324,7 @@ def submit():
     conn.close()
 
     email = session["user"]["email"] if session.get("user") else None
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cur = conn.cursor()
     
     cur.execute(
@@ -346,7 +359,7 @@ def update_song(song_id):
     if not new_song or not new_link:
         return jsonify({"error": "內容不可為空"}), 400
 
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cur = conn.cursor()
 
     cur.execute("SELECT name, email FROM songs WHERE id = ?", (song_id,))
@@ -424,7 +437,7 @@ def status():
     if not gender:
         return jsonify(status)
 
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cur = conn.cursor()
 
     if session.get("user"):
@@ -467,7 +480,7 @@ def status():
 
 @app.route("/reset_ids", methods=["POST"])
 def reset_ids():
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM songs ORDER BY id")
@@ -490,7 +503,7 @@ def reset_ids():
 # ======================
 @app.route("/export")
 def export():
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     df = pd.read_sql_query(
         "SELECT id AS ID, name AS 姓名, gender AS 性別, email AS Email, song AS 歌名, duration AS 歌曲時長, link AS 歌曲連結, timestamp AS 填寫時間 FROM songs",
         conn
@@ -543,7 +556,7 @@ def config_route():
 @app.route("/delete/<int:song_id>", methods=["DELETE"])
 def delete_song(song_id):
     try:
-        conn = sqlite3.connect("database.db")
+        conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("DELETE FROM songs WHERE id = ?", (song_id,))
         conn.commit()
@@ -562,7 +575,7 @@ def delete_song(song_id):
 @app.route("/delete_all", methods=["DELETE"])
 def delete_all_songs():
     try:
-        conn = sqlite3.connect("database.db")
+        conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("DELETE FROM songs")
         conn.commit()
@@ -576,7 +589,7 @@ def delete_all_songs():
 # ======================
 @app.route("/results")
 def get_results():
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
     results = []
 
@@ -618,7 +631,7 @@ def admin_results():
     if not session.get("user") or session["user"].get("email") not in ADMIN_EMAILS:
         return jsonify({"error": "您沒有管理員權限"}), 403
 
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs ORDER BY id")
     rows = cursor.fetchall()
@@ -643,7 +656,7 @@ def admin_results():
 # ======================
 @app.route("/result/<int:song_id>")
 def get_result(song_id):
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT id, name, gender, song, link, timestamp, email FROM songs WHERE id = ?", (song_id,))
     row = cur.fetchone()
