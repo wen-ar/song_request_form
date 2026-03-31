@@ -4,7 +4,6 @@ from flask import Flask, session, redirect, url_for
 from datetime import timedelta
 from authlib.integrations.flask_client import OAuth
 import requests
-import sqlite3
 import pandas as pd
 import base64
 import json
@@ -36,9 +35,6 @@ spotify_token_expiry = 0
 app = Flask(__name__)
 app.secret_key = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 app.permanentsessionlifetime = timedelta(days=7)
-
-with app.app_context():
-    init_db()
 
 # 管理員清單
 ADMIN_EMAILS = ["huiyingl936@gmail.com", "S0702265@o365.kh.edu.tw", "lynnn0215@gmail.com"]
@@ -493,9 +489,9 @@ def reset_ids():
 
     for i, row in enumerate(rows, start=1):
         cursor.execute(
-            "INSERT INTO songs (id, name, gender, song, link, timestamp) VALUES (%s, %s, %s, %s, %s, %s)",
-            (i, row[1], row[2], row[3], row[4], row[5])
-        )
+            "INSERT INTO songs (id, name, gender, song, link, timestamp, email, duration) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            (i, row[1], row[2], row[3], row[4], row[5], row[6], row[7])
+    )
 
     conn.commit()
     conn.close()
@@ -709,5 +705,6 @@ def index():
 # 啟動 Flask
 # ======================
 if __name__ == "__main__":
-    init_db()
+    with app.app_context():
+        init_db()
     app.run(debug=True)
