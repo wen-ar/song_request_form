@@ -129,8 +129,8 @@ def authorize_google():
             SET email = %s
             WHERE (
                 LOWER(TRIM(name)) = LOWER(TRIM(%s)) OR 
-                ? LIKE '%' || name || '%' OR
-                name LIKE '%' || ? || '%'
+                %s LIKE '%' || name || '%' OR
+                name LIKE '%' || %s || '%'
             )
             AND (email IS NULL OR email = '' OR email = '無')
             """,
@@ -299,9 +299,9 @@ def submit():
 
     if session.get("user"):
         email = session["user"].get("email")
-        cur_query = ("SELECT COUNT(*) FROM songs WHERE email = ? AND gender = ?", (email, gender))
+        cur_query = ("SELECT COUNT(*) FROM songs WHERE email = %s AND gender = %s", (email, gender))
     else:
-        cur_query = ("SELECT COUNT(*) FROM songs WHERE name = ? AND gender = ?", (name, gender))
+        cur_query = ("SELECT COUNT(*) FROM songs WHERE name = %s AND gender = %s", (name, gender))
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -706,4 +706,5 @@ def index():
 # 啟動 Flask
 # ======================
 if __name__ == "__main__":
+    init_db()
     app.run(debug=True)
