@@ -701,30 +701,15 @@ def admin_page():
 def index():
     return render_template("index.html", ADMIN_EMAILS=ADMIN_EMAILS)
 
-@app.route("/debug_write_test")
-def debug_write_test():
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO songs (name, gender, song, link, duration, email, timestamp) VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id",
-                    ("__DEBUG_TEST__", "男", "TEST SONG", "http://test", "0:00", "debug@example.com", datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-        new_id = cur.fetchone()[0]
-        conn.commit()
-        cur.close()
-        conn.close()
-        return jsonify({"ok": True, "inserted_id": new_id})
-    except Exception as e:
-        try:
-            conn.rollback()
-        except:
-            pass
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-
 # ======================
 # 啟動 Flask
 # ======================
-if __name__ == "__main__":
-    with app.app_context():
+with app.app_context():
+    try:
         init_db()
+        print("資料庫初始化成功！")
+    except Exception as e:
+        print(f"資料庫初始化失敗: {e}")
+
+if __name__ == "__main__":
     app.run(debug=True)
