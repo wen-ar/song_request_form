@@ -200,15 +200,27 @@ def init_db():
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            email TEXT UNIQUE NOT NULL,
-            display_name TEXT,
-            gender TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        CREATE TABLE IF NOT EXISTS system_config (
+            key TEXT PRIMARY KEY,
+            value TEXT
         )
     """)
+    
+    default_configs = {
+        "accept_responses": "true",
+        "deadline": "",
+        "notification_content": "操作成功！請查看結果",
+        "version": "1.0.0",
+        "male_limit_enabled": "false",
+        "male_limit_count": "0",
+        "female_limit_enabled": "false",
+        "female_limit_count": "0"
+    }
+    for k, v in default_configs.items():
+        cur.execute("INSERT INTO system_config (key, value) VALUES (%s, %s) ON CONFLICT (key) DO NOTHING", (k, v))
+        
     conn.commit()
     conn.close()
     
@@ -216,15 +228,23 @@ def init_db():
 # 載入設定檔
 # ======================
 def load_config():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT key, value FROM system_config")
+    rows = cur.fetchall()
+    conn.close()
+    
+    db_data = {row[0]: row[1] for row in rows}
+    
     config = {
-        "accept_responses": os.getenv("ACCEPT_RESPONSES", "true") == "true",
-        "deadline": os.getenv("DEADLINE", ""),
-        "notification_content": os.getenv("NOTIFICATION_CONTENT", ""),
-        "version": os.getenv("VERSION", "1.0.0"),
-        "male_limit_enabled": os.getenv("MALE_LIMIT_ENABLED", "false") == "true",
-        "male_limit_count": int(os.getenv("MALE_LIMIT_COUNT", "0")),
-        "female_limit_enabled": os.getenv("FEMALE_LIMIT_ENABLED", "false") == "true",
-        "female_limit_count": int(os.getenv("FEMALE_LIMIT_COUNT", "0"))
+        "accept_responses": db_data.get("accept_responses") == "true",
+        "deadline": db_data.get("deadline", ""),
+        "notification_content": db_data.get("notification_content", ""),
+        "version": db_data.get("version", "1.0.0"),
+        "male_limit_enabled": db_data.get("male_limit_enabled") == "true",
+        "male_limit_count": int(db_data.get("male_limit_count", "0")),
+        "female_limit_enabled": db_data.get("female_limit_enabled") == "true",
+        "female_limit_count": int(db_data.get("female_limit_count", "0"))
     }
     return config
 
@@ -520,34 +540,28 @@ def export():
 @app.route("/config", methods=["GET", "POST"])
 def config_route():
     if request.method == "GET":
+        # 直接呼叫新的 load_config() 從資料庫抓資料
         return jsonify(load_config())
     else:
         data = request.json
-        config = load_config()
-
-        if "accept_responses" in data:
-            config["accept_responses"] = data["accept_responses"]
-        if "deadline" in data:
-            config["deadline"] = data["deadline"]
-
-        if "notification_content" in data:
-            config["notification_content"] = data["notification_content"]
-        if "version" in data:
-            config["version"] = data["version"]
-
-        if "male_limit_enabled" in data:
-            config["male_limit_enabled"] = data["male_limit_enabled"]
-        if "male_limit_count" in data:
-            config["male_limit_count"] = int(data["male_limit_count"])
-        if "female_limit_enabled" in data:
-            config["female_limit_enabled"] = data["female_limit_enabled"]
-        if "female_limit_count" in data:
-            config["female_limit_count"] = int(data["female_limit_count"])
-
-        with open("config.json", "w", encoding="utf-8") as f:
-            json.dump(config, f, ensure_ascii=False, indent=2)
-
-        return jsonify({"success": True})
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        try:
+            # 遍歷前端傳來的所有設定項
+            for key, value in data.items():
+                # 為了存入資料庫，將布林值 (True/False) 轉為小寫字串 "true"/"false"
+                val_str = str(value).lower() if isinstance(value, bool) else str(value)
+                # 使用 UPDATE 更新資料庫中對應的 key
+                cur.execute("UPDATE system_config SET value = %s WHERE key = %s", (val_str, key))
+            
+            conn.commit() # 務必 commit 才會真正寫入 PostgreSQL
+            return jsonify({"success": True})
+        except Exception as e:
+            conn.rollback() # 出錯時回滾
+            return jsonify({"error": str(e)}), 500
+        finally:
+            conn.close()
 
 # ======================
 # 刪除
