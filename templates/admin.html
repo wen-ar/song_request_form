@@ -7,8 +7,9 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
     <style>
+    /* 毛玻璃導覽列 — 穩定可見版 */
     .blur-navbar {
-      background: rgba(15, 15, 18, 0.82);
+      background: rgba(15, 15, 18, 0.82);   /* ← 透明度提高 */
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
 
@@ -16,30 +17,35 @@
       box-shadow: 0 6px 24px rgba(0,0,0,0.35);
     }
 
+    /* 讓文字更清楚 */
     .blur-navbar .navbar-brand,
     .blur-navbar .navbar-text,
     .blur-navbar .nav-link {
       color: #fff !important;
     }
 
+    /* 按鈕在模糊背景上更清楚 */
     .blur-navbar .btn-outline-light {
       border-color: rgba(255,255,255,0.7);
     }
 
+    /* 讓管理頁面的區塊標題更清晰 */
     h2 {
       font-weight: 700;
       color: #333;
-      border-left: 5px solid #0d6efd;
+      border-left: 5px solid #0d6efd; /* 加入藍色側邊條標示 */
       padding-left: 15px;
       margin-top: 2rem;
     }
 
+    /* 調整表格與清單的圓角 */
     .list-group-item {
       border-radius: 8px !important;
       margin-bottom: 5px;
       border: 1px solid #eee;
     }
 
+    /* 手機導覽列優化 */
     @media (max-width: 991px) {
 
       .navbar-brand {
@@ -66,6 +72,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark blur-navbar fixed-top">
     <div class="container-fluid">
 
+      <!-- 左側標題 -->
       <a class="navbar-brand fs-4 fw-bold" href="{{ url_for('index') }}">
         🎵 線上點歌表單（管理）
       </a>
@@ -114,15 +121,6 @@
       </div>
     </div>
   </nav>
-    notification_content
-
-
-  <div id="floatToolbar" style="display: none; position: absolute; z-index: 2000; background: #fff; border: 1px solid #ddd; padding: 5px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); align-items: center; gap: 5px;">
-    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="execCmd('bold')"><b>B</b></button>
-    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="execCmd('italic')"><i>I</i></button>
-    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="execCmd('underline')"><u>U</u></button>
-    <input type="color" onchange="execCmd('foreColor', this.value)" title="文字顏色" style="width:25px; height:25px; border:none; cursor:pointer; background:none;">
-  </div>
   
   <!-- 系統設定 -->
   <h2 class="mb-4 mt-4">系統管理設定</h2>
@@ -148,8 +146,8 @@
   <h2 class="mb-4">通知設定</h2>
   <form id="notifyForm">
     <div class="mb-3">
-      <label class="form-label fw-bold">通知內容 (反白文字可編輯樣式)</label>
-      <div id="notification_content" contenteditable="true" class="form-control" style="min-height: 120px; height: auto; white-space: pre-wrap; background-color: #fff;"></div>
+      <label for="notificationContent" class="form-label">自訂通知內容</label>
+      <textarea class="form-control" id="notificationContent" rows="6" style="font-family: monospace;"></textarea>
     </div>
     <div class="mb-3">
       <label for="version" class="form-label">版本號 (格式 x.y.z)</label>
@@ -239,36 +237,8 @@
     </div>
   </div>
 
+  <!-- JS 功能 -->
   <script>
-    const editor = document.getElementById('notification_content');
-    const toolbar = document.getElementById('floatToolbar');
-
-    document.addEventListener('selectionchange', () => {
-        const selection = window.getSelection();
-        if (!selection.isCollapsed && editor.contains(selection.anchorNode)) {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-        
-            toolbar.style.display = 'flex';
-            toolbar.style.top = `${rect.top + window.scrollY - 50}px`;
-            toolbar.style.left = `${rect.left + window.scrollX}px`;
-        } else {
-            setTimeout(() => {
-                if (!toolbar.matches(':hover')) toolbar.style.display = 'none';
-            }, 200);
-        }
-    });
-
-    function execCmd(command, value = null) {
-        document.execCommand(command, false, value);
-        editor.focus();
-
-    function saveConfig() {
-        const data = {
-            notification_content: document.getElementById('notification_content').innerHTML, 
-        };
-    }
-
     // 載入設定
     function loadConfig() {
       fetch("/config")
