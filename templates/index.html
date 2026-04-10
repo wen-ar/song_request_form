@@ -338,6 +338,7 @@
 
   <!-- JavaScript -->
   <script>
+    let selectedSongDuration = 0;
     const switchD = document.getElementById('festivalSwitchDesktop');
     const switchM = document.getElementById('festivalSwitch');
     const offcanvasEl = document.getElementById('offcanvasNav');
@@ -445,6 +446,7 @@
         gender: document.getElementById("gender").value,
         songName: document.getElementById("songName").value,
         songLink: document.getElementById("songLink").value
+        duration: selectedSongDuration
       };
       fetch("/submit", {
         method: "POST",
@@ -545,6 +547,7 @@
               e.preventDefault();
               document.getElementById("songName").value = item.name;
               document.getElementById("songLink").value = item.url;
+              selectedSongDuration = item.duration;
               box.innerHTML = "";
             };
             box.appendChild(a);
@@ -607,7 +610,7 @@
           .then(data => {
             editSuggest.innerHTML = data.map(track => `
               <button type="button" class="list-group-item list-group-item-action py-2 d-flex align-items-center gap-3" 
-                onclick="selectTrackForEdit(\`${track.name.replace(/'/g, "\\'")} - ${track.artist.replace(/'/g, "\\")}\`, '${track.url}')">
+                onclick="selectTrackForEdit(\`${track.name.replace(/'/g, "\\'")} - ${track.artist.replace(/'/g, "\\")}\`, '${track.url}', ${track.duration})"
                 <img src="${track.cover || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;">
                 <div class="text-start text-truncate">
                   <div class="small fw-bold">${track.name}</div>
@@ -624,6 +627,7 @@
     function selectTrackForEdit(fullName, url) {
       document.getElementById('editSongName').value = fullName;
       document.getElementById('editSongLink').value = url;
+      indow.editSelectedDuration = duration;
       document.getElementById('editSongSuggestions').innerHTML = '';
     }
 
@@ -739,8 +743,6 @@
     const id = document.getElementById('editId').value;
     const songName = document.getElementById('editSongName').value;
     const songLink = document.getElementById('editSongLink').value;
-    
-    // ★ 重要：必須抓取主表單的姓名，否則後端無法驗證「未登入點的歌」
     const name = document.getElementById('name').value;
 
     if (!songName || !songLink) {
@@ -754,7 +756,8 @@
       body: JSON.stringify({ 
         songName: songName, 
         songLink: songLink,
-        name: name // ★ 傳送姓名給後端
+        name: name
+        duration: window.editSelectedDuration || 0
       })
     })
     .then(res => res.json())
