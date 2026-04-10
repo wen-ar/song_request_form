@@ -95,10 +95,12 @@ def authorize_microsoft():
                 """
                 UPDATE songs 
                 SET email = %s
-                WHERE LOWER(TRIM(name)) = LOWER(TRIM(%s)) 
-                AND (email IS NULL OR email = '' OR email = '無')
+                WHERE (email IS NULL OR email = '' OR email = '無')
+                AND name IN (
+                    SELECT name FROM songs WHERE email = %s
+                )
                 """,
-                (email, name)
+                (email, email)
             )
             conn.commit()
             conn.close()
@@ -121,23 +123,17 @@ def authorize_google():
     if email and full_name:
         conn = get_db_connection()
         cur = conn.cursor()
-        
         cur.execute(
             """
             UPDATE songs 
             SET email = %s
-            WHERE (
-                LOWER(TRIM(name)) = LOWER(TRIM(%s)) OR 
-                %s LIKE '%' || name || '%' OR
-                name LIKE '%' || %s || '%'
+            WHERE (email IS NULL OR email = '' OR email = '無')
+            AND name IN (
+                SELECT name FROM songs WHERE email = %s
             )
-            AND (email IS NULL OR email = '' OR email = '無')
             """,
-            (email, full_name, full_name, given_name if given_name else full_name)
+            (email, email)
         )
-        updated_rows = cur.rowcount
-        print(f"DEBUG: Google 自動歸戶更新了 {updated_rows} 筆資料")
-        
         conn.commit()
         conn.close()
 
@@ -316,35 +312,25 @@ def submit():
     if not all([name, gender, song, link]):
         return jsonify({"error": "欄位不可為空"}), 400
 
-    if session.get("user"):
-        email = session["user"].get("email")
-        cur_query = ("SELECT COUNT(*) FROM songs WHERE email = %s AND gender = %s", (email, gender))
-    else:
-        cur_query = ("SELECT COUNT(*) FROM songs WHERE name = %s AND gender = %s", (name, gender))
-
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute(*cur_query)
+    
+    cur.execute("SELECT COUNT(*) FROM songs WHERE name = %s AND gender = %s", (name, gender))
     count = cur.fetchone()[0]
-    conn.close()
 
     if gender == "男" and config.get("male_limit_enabled") and count >= config.get("male_limit_count", 0):
+        conn.close()
         return jsonify({"error": "你已達男生點歌上限"}), 403
     if gender == "女" and config.get("female_limit_enabled") and count >= config.get("female_limit_count", 0):
+        conn.close()
         return jsonify({"error": "你已達女生點歌上限"}), 403
 
-    conn = get_db_connection()
-    cur = conn.cursor()
     cur.execute("SELECT COUNT(*) FROM songs WHERE song = %s AND link = %s", (song, link))
-    duplicate_count = cur.fetchone()[0]
-    if duplicate_count > 0:
+    if cur.fetchone()[0] > 0:
         conn.close()
         return jsonify({"error": "這首歌已經有人提交過了"}), 403
-    conn.close()
 
     email = session["user"]["email"] if session.get("user") else None
-    conn = get_db_connection()
-    cur = conn.cursor()
     
     cur.execute(
         "INSERT INTO songs (name, gender, song, link, duration, email, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s)",
@@ -421,10 +407,8 @@ def update_song(song_id):
 # ======================
 @app.route("/status")
 def status():
-
     config = load_config()
     now = datetime.now()
-
     name = request.args.get("name")
     gender = request.args.get("gender")
 
@@ -458,18 +442,16 @@ def status():
 
     conn = get_db_connection()
     cur = conn.cursor()
-
-    if session.get("user"):
+    if name:
+        cur.execute(
+            "SELECT COUNT(*) FROM songs WHERE name = %s AND gender = %s",
+            (name, gender)
+        )
+    elif session.get("user"):
         email = session["user"].get("email")
         cur.execute(
             "SELECT COUNT(*) FROM songs WHERE email = %s AND gender = %s",
             (email, gender)
-        )
-
-    elif name:
-        cur.execute(
-            "SELECT COUNT(*) FROM songs WHERE name = %s AND gender = %s",
-            (name, gender)
         )
     else:
         conn.close()
