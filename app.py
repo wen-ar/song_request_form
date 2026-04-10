@@ -359,7 +359,11 @@ def update_song(song_id):
     data = request.json
     new_song = data.get("songName")
     new_link = data.get("songLink")
+    new_duration_ms = data.get("duration", 0)
     form_name = data.get("name")
+    minutes = new_duration_ms // 60000
+    seconds = (new_duration_ms % 60000) // 1000
+    duration_str = f"{minutes}:{seconds:02d}"
 
     if not new_song or not new_link:
         return jsonify({"error": "內容不可為空"}), 400
@@ -393,8 +397,8 @@ def update_song(song_id):
     final_email = session["user"].get("email") if session.get("user") else db_email
     
     try:
-        cur.execute("UPDATE songs SET song = %s, link = %s, email = %s WHERE id = %s", 
-                    (new_song, new_link, final_email, song_id))
+        cur.execute("UPDATE songs SET song = %s, link = %s, duration = %s, email = %s WHERE id = %s", 
+                    (new_song, new_link, duration_str, final_email, song_id))
         conn.commit()
         return jsonify({"success": True})
     except Exception as e:
