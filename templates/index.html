@@ -749,12 +749,12 @@
     }
 
     fetch(`/update/${id}`, {
-      method: "POST", // 配合 app.py 的 methods=["POST"]
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         songName: songName, 
         songLink: songLink,
-        name: name
+        name: name,
         duration: window.editSelectedDuration || 0
       })
     })
