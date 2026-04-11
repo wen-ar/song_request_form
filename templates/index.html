@@ -445,7 +445,7 @@
         name: document.getElementById("name").value,
         gender: document.getElementById("gender").value,
         songName: document.getElementById("songName").value,
-        songLink: document.getElementById("songLink").value
+        songLink: document.getElementById("songLink").value,
         duration: selectedSongDuration
       };
       fetch("/submit", {
@@ -474,8 +474,6 @@
     function checkStatus() {
       const name = document.getElementById("name").value.trim();
       const gender = document.getElementById("gender").value;
-
-      fetch(`/status?name=${encodeURIComponent(name)}&gender=${encodeURIComponent(gender)}`)
 
       fetch(`/status?name=${encodeURIComponent(name)}&gender=${encodeURIComponent(gender)}`)
         .then(res => res.json())
@@ -627,7 +625,7 @@
     function selectTrackForEdit(fullName, url) {
       document.getElementById('editSongName').value = fullName;
       document.getElementById('editSongLink').value = url;
-      indow.editSelectedDuration = duration;
+      window.editSelectedDuration = duration;
       document.getElementById('editSongSuggestions').innerHTML = '';
     }
 
