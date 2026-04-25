@@ -60,10 +60,11 @@
     }
 
     body.festival-mode {
-      background: linear-gradient(-45deg, #ffffff, #fff9e6, #ffedb3, #ffffff);
+      background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       min-height: 100vh;
+      color: #e0e0e0;
     }
 
     @keyframes gradientBG {
@@ -73,22 +74,22 @@
     }
 
     body.festival-mode .container.mt-5 {
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-radius: 32px;
       padding: 40px;
-      border: 1px solid rgba(255, 215, 0, 0.3);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
     }
 
     body.festival-mode .btn-primary, 
     body.festival-mode #loginModal .btn-primary {
-      background: linear-gradient(135deg, #FFFAF0 0%, #F5E6BE 100%) !important;
+      background: linear-gradient(135deg, #ece9e6 0%, #ffffff 100%) !important;
       border: 1px solid rgba(184, 134, 11, 0.2) !important;
-      color: #8B7355 !important;
+      color: #2c5364 !important;
       font-weight: 700 !important;
-      box-shadow: 0 4px 15px rgba(218, 165, 32, 0.1) !important;
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2) !important;
       transition: all 0.3s ease;
     }
     body.festival-mode .btn-primary:hover {
@@ -96,7 +97,12 @@
       transform: translateY(-1px);
       box-shadow: 0 6px 20px rgba(218, 165, 32, 0.15) !important;
     }
-
+ 
+    body.festival-mode .form-label, 
+    body.festival-mode .form-check-label {
+      color: #b0bec5 !important;
+    }
+ 
     body.festival-mode #loginModal .btn-danger {
       background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%) !important;
       border: none !important;
@@ -106,8 +112,8 @@
 
     .festival-title { transition: transform 0.3s; }
     body.festival-mode .festival-title {
-      color: #b8860b !important;
-      text-shadow: 0 2px 10px rgba(255, 255, 255, 0.8);
+      color: #f8f9fa !important;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
       font-weight: 900;
     }
 
@@ -238,9 +244,9 @@
   </div>
  
   <h2 class="mb-4 text-center festival-title">
-    <span class="emoji-decor">🍀</span>
-    夏日鳴奏曲 ‧ 沁涼音浪
-    <span class="emoji-decor">🍦</span>
+    <span class="emoji-decor">🌟</span>
+    終章 ‧ 旋律的最後一頁
+    <span class="emoji-decor">⏳</span>
   </h2>
 
   <!-- 狀態顯示區塊 -->
@@ -276,7 +282,7 @@
 
     <button type="submit" class="btn btn-primary w-100 py-2">
       <span class="normal-text">送出回應</span>
-      <span class="festival-text">✨ 隨風綻放 ✨</span>
+      <span class="festival-text">✨ 讓回憶封存在歌聲中 ✨</span>
     </button>
   </form>
 
